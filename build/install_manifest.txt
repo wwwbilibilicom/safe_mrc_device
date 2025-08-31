@@ -1,0 +1,15 @@
+/usr/local/lib/libsafe_mrc_device.a
+/usr/local/include/serial/serial.h
+/usr/local/include/serial/v8stdint.h
+/usr/local/include/safe_mrc_device/safe_mrc/safe_mrc_device_collection.hpp
+/usr/local/include/safe_mrc_device/safe_mrc/safe_mrc_component.hpp
+/usr/local/include/safe_mrc_device/safe_mrc/safeguarder.hpp
+/usr/local/include/safe_mrc_device/safe_mrc/safe_mrc_protocol.h
+/usr/local/include/safe_mrc_device/safe_mrc/safe_mrc.hpp
+/usr/local/include/safe_mrc_device/safe_mrc/safe_mrc_device.hpp
+/usr/local/include/safe_mrc_device/rs485bus/crc_ccitt.h
+/usr/local/include/safe_mrc_device/rs485bus/rs485_device_collection.hpp
+/usr/local/include/safe_mrc_device/rs485bus/rs485_serial.hpp
+/usr/local/lib/libserial.so
+/usr/local/lib/cmake/safe_mrc_device/safe_mrc_deviceTargets.cmake
+/usr/local/lib/cmake/safe_mrc_device/safe_mrc_deviceTargets-noconfig.cmake
