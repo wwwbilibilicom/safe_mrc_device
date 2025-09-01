@@ -15,7 +15,7 @@ namespace safe_mrc {
 SafeMRCDeviceCollection::SafeMRCDeviceCollection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial),
       device_collection_(
-          std::make_unique<RS485DeviceColllection>(rs485_serial_)) {}
+          std::make_unique<RS485DeviceCollection>(rs485_serial_)) {}
 
 void SafeMRCDeviceCollection::enable_all() {
   for (auto device : get_safe_mrc_devices()) {

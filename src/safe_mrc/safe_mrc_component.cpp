@@ -22,4 +22,3 @@ void MRCComponent::init_mrc_devices(std::vector<MRCType>mrc_types, std::vector<u
 }
 
 }
-

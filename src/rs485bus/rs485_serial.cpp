@@ -23,7 +23,7 @@ RS485Serial::RS485Serial(std::string port)
     throw RS485SerialException("Failed to open RS485 serial port: " + port_);
   } else {
     std::cout << "RS485 serial: port opened successfully with " << getBaudrate()
-              << "baudrate and" << port_ << std::endl;
+              << " baudrate and" << port_ << std::endl;
   }
   rx_buffer_.clear();
   this->flushInput();

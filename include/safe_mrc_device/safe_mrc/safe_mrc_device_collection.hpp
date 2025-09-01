@@ -32,15 +32,15 @@ public:
     void mrc_control_all(const std::vector<MRCCmd>& cmds);
 
     std::vector<MRC> get_mrcs() const;
-    RS485DeviceColllection& get_device_collection() { return *device_collection_; }
+    RS485DeviceCollection& get_device_collection() { return *device_collection_; }
 
 protected:
     RS485Serial& rs485_serial_;
-    std::unique_ptr<RS485DeviceColllection> device_collection_;
+    std::unique_ptr<RS485DeviceCollection> device_collection_;
 
     void send_command_to_device(std::shared_ptr<SafeMRCRS485Device> device, const MRCCmd& cmd);
 
     std::vector<std::shared_ptr<SafeMRCRS485Device>> get_safe_mrc_devices() const;
-    
+
 };
 }

@@ -24,7 +24,7 @@ class RS485SerialException : public std::runtime_error {
 };
 
 class RS485Serial : public serial::Serial {
-  friend class RS485DeviceColllection;
+  friend class RS485DeviceCollection;
 
  public:
   RS485Serial(std::string port);
