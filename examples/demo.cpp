@@ -14,17 +14,17 @@ int main() {
 
     // Initialize Safeguarder with RS485 port
     std::cout << "Initializing Safeguarder..." << std::endl;
-    safe_mrc::Safeguarder safeguarder("/dev/ttyUSB1");
+    safe_mrc::Safeguarder safeguarder(port);
 
     // Initialize MRC devices
-    std::vector<safe_mrc::MRCType> mrc_types = {safe_mrc::MRCType::ROTARY96,
-                                                safe_mrc::MRCType::ROTARY52};
-    std::vector<uint8_t> rs485_ids = {0x01, 0x02};
+    std::vector<safe_mrc::MRCType> mrc_types = {safe_mrc::MRCType::ROTARY96};
+    std::vector<uint8_t> rs485_ids = {0x01};
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
     // Enable all MRCs
     std::cout << "\n=== Enabling MRCs ===" << std::endl;
     safeguarder.enable_all();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     // Allow time (2ms) for the MRCs to respond for slow operations like
     // enabling
     safeguarder.set_rx_timeout_us(2000);
@@ -42,8 +42,7 @@ int main() {
     // Control MRCs
     std::cout << "\n=== Controlling MRCs ===" << std::endl;
     safeguarder.get_mrc_component().mrc_control_all(
-        {safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.5},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.8}});
+        {safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.5}});
 
     for (int i = 0; i < 10; i++) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -57,10 +56,12 @@ int main() {
                   << " Mode: " << mrc.get_mode_string() << std::endl;
       }
     }
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     safeguarder.disable_all();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } catch (const std::exception& e) {
-    std::cerr << "Exception: " << port << e.what() << std::endl;
+    std::cerr << "[Safeguarder Exception]: " << port << ">> " << e.what()
+              << std::endl;
     return -1;
   }
   return 0;

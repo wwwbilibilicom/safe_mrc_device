@@ -7,6 +7,7 @@
  **************************************************/
 
 #include "safe_mrc_device/safe_mrc/safe_mrc_device_collection.hpp"
+
 #include <cstring>
 #include <iostream>
 
@@ -39,7 +40,6 @@ void SafeMRCDeviceCollection::refresh_all() {
   }
 }
 
-
 void SafeMRCDeviceCollection::set_zero_all() {
   for (auto device : get_safe_mrc_devices()) {
     send_command_to_device(device, MRCCmd{MRCMode::ZERO, 0.0f});
@@ -70,20 +70,25 @@ std::vector<MRC> SafeMRCDeviceCollection::get_mrcs() const {
   return mrcs;
 }
 
-void SafeMRCDeviceCollection::send_command_to_device(std::shared_ptr<SafeMRCRS485Device> device, 
-                                                      const MRCCmd& cmd) { 
+void SafeMRCDeviceCollection::send_command_to_device(
+    std::shared_ptr<SafeMRCRS485Device> device, const MRCCmd& cmd) {
   MRCCmdFrame cmd_frame =
-    device->create_cmd_frame(static_cast<MRCMode>(cmd.mode), cmd.current_A);
-  std::vector<uint8_t> data(sizeof(cmd_frame));
-  std::memcpy(data.data(), &cmd_frame, sizeof(cmd_frame));
-  rs485_serial_.write_rs485_data(data);
+      device->create_cmd_frame(static_cast<MRCMode>(cmd.mode), cmd.current_A);
+  uint8_t* data = (uint8_t*)&cmd_frame;
+  size_t len = sizeof(MRCCmdFrame);
+  for (size_t i = 0; i < len; i++) {
+    std::cout << std::hex << (int)data[i] << " ";
+  }
+  std::cout << std::endl;
+  rs485_serial_.write_rs485_data((uint8_t*)&cmd_frame);
 }
 
-
-std::vector<std::shared_ptr<SafeMRCRS485Device>> SafeMRCDeviceCollection::get_safe_mrc_devices() const {
+std::vector<std::shared_ptr<SafeMRCRS485Device>>
+SafeMRCDeviceCollection::get_safe_mrc_devices() const {
   std::vector<std::shared_ptr<SafeMRCRS485Device>> safe_mrc_devices;
   for (const auto& [id, device] : device_collection_->get_devices()) {
-    auto safe_mrc_device = std::dynamic_pointer_cast<SafeMRCRS485Device>(device);
+    auto safe_mrc_device =
+        std::dynamic_pointer_cast<SafeMRCRS485Device>(device);
     if (safe_mrc_device) {
       safe_mrc_devices.push_back(safe_mrc_device);
     }
