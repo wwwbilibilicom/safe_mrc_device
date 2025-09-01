@@ -25,7 +25,7 @@ class MRC {
 friend class SafeMRCRS485Device;
 public:
     MRC(MRCType mrc_type, uint8_t rs485_id);
-    ~MRC();
+    ~MRC() = default;
 
     bool is_enabled() const { return enabled_; }
 

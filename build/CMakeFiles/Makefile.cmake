@@ -85,4 +85,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/ContinuousMemCheck.dir/DependInfo.cmake"
   "CMakeFiles/ContinuousSubmit.dir/DependInfo.cmake"
   "CMakeFiles/safe_mrc_device.dir/DependInfo.cmake"
+  "CMakeFiles/demo.dir/DependInfo.cmake"
+  "CMakeFiles/serial_test.dir/DependInfo.cmake"
+  "CMakeFiles/simple_serial_check.dir/DependInfo.cmake"
   )

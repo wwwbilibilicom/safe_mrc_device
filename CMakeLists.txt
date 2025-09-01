@@ -40,13 +40,13 @@ set(SOURCES
 add_library(${PROJECT_NAME} ${SOURCES})
 
 # Link libraries - use local serial library
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
     ${LOCAL_LIB_DIR}/libserial.so
     Threads::Threads
 )
 
-add_executable(demo.cpp examples/demo.cpp)
-target_link_libraries(demo.cpp ${PROJECT_NAME})
+add_executable(demo examples/demo.cpp)
+target_link_libraries(demo ${PROJECT_NAME})
 
 # Set RPATH to find the local library at runtime
 set_target_properties(${PROJECT_NAME} PROPERTIES

@@ -20,7 +20,7 @@ namespace safe_mrc {
 class RS485Device {
 public:
     RS485Device(uint8_t rs485_id) : rs485_id_(rs485_id) {}
-    virtual ~RS485Device() = default;
+    ~RS485Device();
 
     virtual void callback(MRCFdkFrame & frame) = 0;
 

@@ -27,6 +27,9 @@
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/ContinuousMemCheck.dir
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/ContinuousSubmit.dir
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/safe_mrc_device.dir
+/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/demo.dir
+/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/serial_test.dir
+/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/simple_serial_check.dir
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/test.dir
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/edit_cache.dir
 /home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build/CMakeFiles/rebuild_cache.dir

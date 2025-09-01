@@ -20,9 +20,9 @@ namespace safe_mrc {
         uint8_t head[2];                // 2 bytes 0xFE, 0xEE
         uint8_t id;                     // 1 bytes
         uint8_t mode;                  // 1 bytes
-        int32_t des_coil_current;            // 4 bytes
+        int32_t des_coil_current;            // 2 bytes
         uint16_t CRC16Data;             // 2 bytes
-    } MRCCmdFrame;                 // 10 bytes 
+    } MRCCmdFrame;                 // 8 bytes 
 #pragma pack()
 
 #pragma pack(1)
@@ -33,7 +33,7 @@ namespace safe_mrc {
         uint8_t mode;              // 1 bytes
         uint8_t collision_flag;             // 1 bytes 0x00: safely, 0x01: collision happened.
         int32_t encoder_position;     // 4 bytes
-        int32_t encoder_velocity;    // 4 bytes
+        int32_t encoder_velocity;    // 2 bytes
         int16_t present_current;    // 2 bytes
         uint16_t CRC16Data;         // 2 bytes
     } MRCFdkFrame;             // 17 bytes
@@ -51,8 +51,18 @@ struct StateResult{
     float    frequency_hz;
 };
 
+enum class MRCMode{
+    FREE,
+    FIX_LIMIT,
+    ADAPTATION,
+    DEBUG,
+    RESET,
+    ZERO,
+    REFRESH
+};
+
 struct MRCCmd{
-    uint8_t mode;
+    MRCMode mode;
     float   current_A; // A
 };
 

@@ -23,7 +23,7 @@ The `safe_mrc_device` package provides a comprehensive framework for managing Sa
 
 ### 1. MRC Class
 - **Purpose**: Manages individual MRC device state
-- **Features**: 
+- **Features**:
   - Position, velocity, current monitoring
   - Collision flag detection
   - Multiple operation modes
@@ -101,40 +101,40 @@ int main() {
     try {
         // Initialize Safeguarder with serial port
         safe_mrc::Safeguarder safeguarder("/dev/ttyUSB0");
-        
+
         // Configure MRC devices
         std::vector<safe_mrc::MRCType> mrc_types = {
-            safe_mrc::MRCType::ROTARY96, 
+            safe_mrc::MRCType::ROTARY96,
             safe_mrc::MRCType::ROTARY52
         };
         std::vector<uint8_t> rs485_ids = {1, 2};
-        
+
         safeguarder.init_mrcs(mrc_types, rs485_ids);
-        
+
         // Enable all devices
         safeguarder.enable_all();
-        
+
         // Control individual device
         auto& mrc_component = safeguarder.get_mrc_component();
         mrc_component.mrc_control_one(0, {
-            static_cast<uint8_t>(safe_mrc::MRCMode::ADAPTATION), 
+            static_cast<uint8_t>(safe_mrc::MRCMode::ADAPTATION),
             0.5f  // 0.5A current
         });
-        
+
         // Monitor device status
         auto mrcs = mrc_component.get_mrcs();
         for (const auto& mrc : mrcs) {
-            std::cout << "Device " << static_cast<int>(mrc.get_rs485_id()) 
-                      << " Position: " << mrc.get_position() 
-                      << " Collision: " << static_cast<int>(mrc.get_collision_flag()) 
+            std::cout << "Device " << static_cast<int>(mrc.get_rs485_id())
+                      << " Position: " << mrc.get_position()
+                      << " Collision: " << static_cast<int>(mrc.get_collision_flag())
                       << std::endl;
         }
-        
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    
+
     return 0;
 }
 ```
@@ -303,9 +303,45 @@ std::cout << "Enabled: " << mrc.is_enabled() << std::endl;
 
 This package is distributed under the MIT License. See the LICENSE file for details.
 
+## Debugging
+
+### VSCode Debug Setup
+
+This project includes pre-configured VSCode debugging settings. To get started:
+
+1. **Quick Setup**: Run the setup script:
+   ```bash
+   chmod +x setup_debug_env.sh
+   ./setup_debug_env.sh
+   ```
+
+2. **Manual Setup**: Follow the detailed guide in `DEBUG_GUIDE.md`
+
+3. **Install VSCode Extensions**: See `VSCODE_EXTENSIONS.md` for recommended extensions
+
+### Debug Configuration Files
+
+- `.vscode/launch.json`: Debug configurations
+- `.vscode/tasks.json`: Build tasks
+- `.vscode/settings.json`: Editor settings
+- `.vscode/c_cpp_properties.json`: C++ IntelliSense settings
+
+### Quick Debug Steps
+
+1. Open the project in VSCode
+2. Set breakpoints in `examples/demo.cpp`
+3. Press `F5` to start debugging
+4. Use the debug console to inspect variables
+
+### Common Debug Scenarios
+
+- **Hardware Connection Issues**: Check serial port permissions and device connections
+- **Library Loading Errors**: Verify `LD_LIBRARY_PATH` includes `./lib`
+- **Build Errors**: Use `Ctrl+Shift+P` → "Tasks: Run Task" → "CMake Build"
+
 ## Support
 
 - **Documentation**: [OpenArm Docs](https://docs.openarm.dev)
 - **Community**: [Discord](https://discord.gg/FsZaZ4z3We)
 - **Contact**: <openarm@enactic.ai>
-- **Issues**: GitHub Issues page 
+- **Issues**: GitHub Issues page

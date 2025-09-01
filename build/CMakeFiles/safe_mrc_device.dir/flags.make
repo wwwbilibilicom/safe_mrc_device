@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/include
 
-CXX_FLAGS = -Wall -Wextra -Wpedantic -std=gnu++17
+CXX_FLAGS = -g -Wall -Wextra -Wpedantic -std=gnu++17
 

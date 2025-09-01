@@ -20,7 +20,6 @@ namespace safe_mrc {
 class SafeMRCRS485Device: public safe_mrc::RS485Device {
 public:
     SafeMRCRS485Device(MRC& mrc);
-    ~SafeMRCRS485Device();
 
     MRC & get_mrc(){ return mrc_; }
 

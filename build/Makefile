@@ -548,6 +548,69 @@ safe_mrc_device/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/safe_mrc_device.dir/build.make CMakeFiles/safe_mrc_device.dir/build
 .PHONY : safe_mrc_device/fast
 
+#=============================================================================
+# Target rules for targets named demo
+
+# Build rule for target.
+demo: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 demo
+.PHONY : demo
+
+# fast build rule for target.
+demo/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/build
+.PHONY : demo/fast
+
+#=============================================================================
+# Target rules for targets named serial_test
+
+# Build rule for target.
+serial_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 serial_test
+.PHONY : serial_test
+
+# fast build rule for target.
+serial_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/serial_test.dir/build.make CMakeFiles/serial_test.dir/build
+.PHONY : serial_test/fast
+
+#=============================================================================
+# Target rules for targets named simple_serial_check
+
+# Build rule for target.
+simple_serial_check: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 simple_serial_check
+.PHONY : simple_serial_check
+
+# fast build rule for target.
+simple_serial_check/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_serial_check.dir/build.make CMakeFiles/simple_serial_check.dir/build
+.PHONY : simple_serial_check/fast
+
+examples/demo.o: examples/demo.cpp.o
+.PHONY : examples/demo.o
+
+# target to build an object file
+examples/demo.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/examples/demo.cpp.o
+.PHONY : examples/demo.cpp.o
+
+examples/demo.i: examples/demo.cpp.i
+.PHONY : examples/demo.i
+
+# target to preprocess a source file
+examples/demo.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/examples/demo.cpp.i
+.PHONY : examples/demo.cpp.i
+
+examples/demo.s: examples/demo.cpp.s
+.PHONY : examples/demo.s
+
+# target to generate assembly for a file
+examples/demo.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/examples/demo.cpp.s
+.PHONY : examples/demo.cpp.s
+
 src/rs485bus/rs485_device_collection.o: src/rs485bus/rs485_device_collection.cpp.o
 .PHONY : src/rs485bus/rs485_device_collection.o
 
@@ -716,6 +779,54 @@ src/safe_mrc/safeguarder.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/safe_mrc_device.dir/build.make CMakeFiles/safe_mrc_device.dir/src/safe_mrc/safeguarder.cpp.s
 .PHONY : src/safe_mrc/safeguarder.cpp.s
 
+test/serial_test.o: test/serial_test.cpp.o
+.PHONY : test/serial_test.o
+
+# target to build an object file
+test/serial_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/serial_test.dir/build.make CMakeFiles/serial_test.dir/test/serial_test.cpp.o
+.PHONY : test/serial_test.cpp.o
+
+test/serial_test.i: test/serial_test.cpp.i
+.PHONY : test/serial_test.i
+
+# target to preprocess a source file
+test/serial_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/serial_test.dir/build.make CMakeFiles/serial_test.dir/test/serial_test.cpp.i
+.PHONY : test/serial_test.cpp.i
+
+test/serial_test.s: test/serial_test.cpp.s
+.PHONY : test/serial_test.s
+
+# target to generate assembly for a file
+test/serial_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/serial_test.dir/build.make CMakeFiles/serial_test.dir/test/serial_test.cpp.s
+.PHONY : test/serial_test.cpp.s
+
+test/simple_serial_check.o: test/simple_serial_check.cpp.o
+.PHONY : test/simple_serial_check.o
+
+# target to build an object file
+test/simple_serial_check.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_serial_check.dir/build.make CMakeFiles/simple_serial_check.dir/test/simple_serial_check.cpp.o
+.PHONY : test/simple_serial_check.cpp.o
+
+test/simple_serial_check.i: test/simple_serial_check.cpp.i
+.PHONY : test/simple_serial_check.i
+
+# target to preprocess a source file
+test/simple_serial_check.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_serial_check.dir/build.make CMakeFiles/simple_serial_check.dir/test/simple_serial_check.cpp.i
+.PHONY : test/simple_serial_check.cpp.i
+
+test/simple_serial_check.s: test/simple_serial_check.cpp.s
+.PHONY : test/simple_serial_check.s
+
+# target to generate assembly for a file
+test/simple_serial_check.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simple_serial_check.dir/build.make CMakeFiles/simple_serial_check.dir/test/simple_serial_check.cpp.s
+.PHONY : test/simple_serial_check.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -757,7 +868,13 @@ help:
 	@echo "... NightlySubmit"
 	@echo "... NightlyTest"
 	@echo "... NightlyUpdate"
+	@echo "... demo"
 	@echo "... safe_mrc_device"
+	@echo "... serial_test"
+	@echo "... simple_serial_check"
+	@echo "... examples/demo.o"
+	@echo "... examples/demo.i"
+	@echo "... examples/demo.s"
 	@echo "... src/rs485bus/rs485_device_collection.o"
 	@echo "... src/rs485bus/rs485_device_collection.i"
 	@echo "... src/rs485bus/rs485_device_collection.s"
@@ -779,6 +896,12 @@ help:
 	@echo "... src/safe_mrc/safeguarder.o"
 	@echo "... src/safe_mrc/safeguarder.i"
 	@echo "... src/safe_mrc/safeguarder.s"
+	@echo "... test/serial_test.o"
+	@echo "... test/serial_test.i"
+	@echo "... test/serial_test.s"
+	@echo "... test/simple_serial_check.o"
+	@echo "... test/simple_serial_check.i"
+	@echo "... test/simple_serial_check.s"
 .PHONY : help
 
 

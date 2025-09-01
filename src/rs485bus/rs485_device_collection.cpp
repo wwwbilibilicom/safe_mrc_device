@@ -15,6 +15,7 @@
 namespace safe_mrc {
 RS485DeviceColllection::RS485DeviceColllection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial) {}
+RS485Device::~RS485Device(){};
 
 bool RS485DeviceColllection::enable_rx_thread() {
     if(rs485_serial_.is_initialized() == false) {

@@ -14,23 +14,6 @@
 # EXTERNAL cache entries
 ########################
 
-//Generate environment files in the CMAKE_INSTALL_PREFIX
-AMENT_CMAKE_ENVIRONMENT_GENERATION:BOOL=OFF
-
-//Generate environment files in the package share folder
-AMENT_CMAKE_ENVIRONMENT_PACKAGE_GENERATION:BOOL=ON
-
-//Generate marker file containing the parent prefix path
-AMENT_CMAKE_ENVIRONMENT_PARENT_PREFIX_PATH_GENERATION:BOOL=ON
-
-//Replace the CMake install command with a custom implementation
-// using symlinks instead of copying resources
-AMENT_CMAKE_SYMLINK_INSTALL:BOOL=OFF
-
-//Generate an uninstall target to revert the effects of the install
-// step
-AMENT_CMAKE_UNINSTALL_TARGET:BOOL=ON
-
 //Build the testing tree.
 BUILD_TESTING:BOOL=ON
 
@@ -42,7 +25,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Debug
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -293,6 +276,9 @@ CTEST_SUBMIT_RETRY_DELAY:STRING=5
 //Maximum time allowed before CTest will kill the test.
 DART_TESTING_TIMEOUT:STRING=1500
 
+//Path to a program.
+GITCOMMAND:FILEPATH=/usr/bin/git
+
 //Command to build the project
 MAKECOMMAND:STRING=/usr/bin/cmake --build . --config "${CTEST_CONFIGURATION_TYPE}"
 
@@ -305,12 +291,6 @@ MEMORYCHECK_SUPPRESSIONS_FILE:FILEPATH=
 //Name of the computer/site where compile is being run
 SITE:STRING=8ac584b3d38c
 
-//Path to a library.
-_lib:FILEPATH=/usr/local/lib/libserial.so
-
-//The directory containing a CMake configuration file for ament_cmake_core.
-ament_cmake_core_DIR:PATH=/opt/ros/humble/share/ament_cmake_core/cmake
-
 //Value Computed by CMake
 safe_mrc_device_BINARY_DIR:STATIC=/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device/build
 
@@ -319,9 +299,6 @@ safe_mrc_device_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 safe_mrc_device_SOURCE_DIR:STATIC=/home/wenbo/lab_dev/openarm/openarm_ros2/safe_mrc_device
-
-//The directory containing a CMake configuration file for serial.
-serial_DIR:PATH=/usr/local/share/serial/cmake
 
 
 ########################
@@ -519,10 +496,10 @@ CTEST_SUBMIT_RETRY_COUNT-ADVANCED:INTERNAL=1
 CTEST_SUBMIT_RETRY_DELAY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DART_TESTING_TIMEOUT
 DART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1
-//Details about finding Python3
-FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/usr/bin/python3.10][cfound components: Interpreter ][v3.10.4()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//ADVANCED property for variable: GITCOMMAND
+GITCOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: MAKECOMMAND
 MAKECOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: MEMORYCHECK_COMMAND
@@ -533,9 +510,4 @@ MEMORYCHECK_SUPPRESSIONS_FILE-ADVANCED:INTERNAL=1
 SITE-ADVANCED:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=/usr/local
-//Path to a program.
-_Python3_EXECUTABLE:INTERNAL=/usr/bin/python3.10
-//Python3 Properties
-_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;4;64;;cpython-310-x86_64-linux-gnu;/usr/lib/python3.10;/usr/lib/python3.10;/usr/lib/python3/dist-packages;/usr/lib/python3/dist-packages
-_Python3_INTERPRETER_SIGNATURE:INTERNAL=61380851b1f49cd20124cec6c9ca8095
 
