@@ -129,7 +129,7 @@ safeguarder.enable_all{}
 - **DEBUG**: Debug mode
 - **RESET**: Reset device
 - **ZERO**: Zero position reference
-- **ZERO**: Zero position reference
+- **REFRESH**: Only update current state without any control
 
 ## Configuration
 
