@@ -18,7 +18,22 @@ include(GNUInstallDirs)
 set(LOCAL_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(LOCAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Find Threads package (still needed from system)
+# Prefer system libserial, fallback to local copy if not found
+find_library(SERIAL_LIB_SYSTEM NAMES serial libserial)
+find_library(SERIAL_LIB_LOCAL NAMES serial libserial PATHS ${LOCAL_LIB_DIR} NO_DEFAULT_PATH)
+
+set(SERIAL_LIB "")
+if(SERIAL_LIB_SYSTEM)
+  set(SERIAL_LIB ${SERIAL_LIB_SYSTEM})
+  set(SERIAL_LIB_SOURCE "system")
+elseif(SERIAL_LIB_LOCAL)
+  set(SERIAL_LIB ${SERIAL_LIB_LOCAL})
+  set(SERIAL_LIB_SOURCE "local")
+else()
+  message(FATAL_ERROR "Could not find libserial. Install system package (e.g. libserial-dev) or place libserial.so in ${LOCAL_LIB_DIR}")
+endif()
+
+# Threads
 find_package(Threads REQUIRED)
 
 # Include directories - prioritize local includes
@@ -39,20 +54,23 @@ set(SOURCES
 # Create library
 add_library(${PROJECT_NAME} ${SOURCES})
 
-# Link libraries - use local serial library
+# Link libraries - use discovered serial library and threads
 target_link_libraries(${PROJECT_NAME}
-    ${LOCAL_LIB_DIR}/libserial.so
+    ${SERIAL_LIB}
     Threads::Threads
 )
 
 add_executable(demo examples/demo.cpp)
+# Link demo against our library
 target_link_libraries(demo ${PROJECT_NAME})
 
-# Set RPATH to find the local library at runtime
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    INSTALL_RPATH "${LOCAL_LIB_DIR}"
-    BUILD_WITH_INSTALL_RPATH TRUE
-)
+# Set RPATH only if using local library so it can be found at runtime
+if(SERIAL_LIB_SOURCE STREQUAL "local")
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+      INSTALL_RPATH "${LOCAL_LIB_DIR}"
+      BUILD_WITH_INSTALL_RPATH TRUE
+  )
+endif()
 
 # Install rules
 install(TARGETS ${PROJECT_NAME}
@@ -68,10 +86,12 @@ install(DIRECTORY include/
     FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
 )
 
-# Install the local serial library
-install(FILES ${LOCAL_LIB_DIR}/libserial.so
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# Install the local serial library only if it exists and we used the local one
+if(SERIAL_LIB_SOURCE STREQUAL "local")
+  install(FILES ${SERIAL_LIB}
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endif()
 
 # Export targets
 install(EXPORT ${PROJECT_NAME}Targets
@@ -81,5 +101,5 @@ install(EXPORT ${PROJECT_NAME}Targets
 )
 
 # Print configuration info
-message(STATUS "Using local serial library: ${LOCAL_LIB_DIR}/libserial.so")
+message(STATUS "Using ${SERIAL_LIB_SOURCE} serial library: ${SERIAL_LIB}")
 message(STATUS "Using local include directory: ${LOCAL_INCLUDE_DIR}")

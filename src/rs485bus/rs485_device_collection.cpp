@@ -15,7 +15,7 @@
 #include "safe_mrc_device/rs485bus/crc_ccitt.h"
 
 namespace safe_mrc {
-RS485Device::~RS485Device(){};
+RS485Device::~RS485Device(){}
 
 RS485DeviceCollection::RS485DeviceCollection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial) {
