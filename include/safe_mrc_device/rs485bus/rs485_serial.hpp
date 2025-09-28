@@ -34,6 +34,8 @@ class RS485Serial : public serial::Serial {
 
   size_t write_rs485_data(const uint8_t* data);
 
+  void printf_frame(const uint8_t* data);
+
   void set_last_error(const std::string& error_message) {
     last_error_ = error_message;
   }
@@ -41,6 +43,7 @@ class RS485Serial : public serial::Serial {
   std::string lastError() const { return last_error_; }
 
   void setTimeout(int timeout_us) { timeout_us_ = timeout_us; }
+  void set_rx_delay_us(int delay_us) { rx_delay_us_ = delay_us; }
 
  private:
   std::string port_;
@@ -48,6 +51,7 @@ class RS485Serial : public serial::Serial {
 
   std::string last_error_;
   int timeout_us_{20};  // Default timeout for read operations in microseconds
+  uint8_t rx_delay_us_;
 
  protected:
   std::vector<uint8_t> rx_buffer_;

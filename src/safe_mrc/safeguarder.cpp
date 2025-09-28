@@ -8,6 +8,8 @@
 
 #include "safe_mrc_device/safe_mrc/safeguarder.hpp"
 
+#include "chrono"
+
 namespace safe_mrc {
 
 Safeguarder::Safeguarder(const std::string& port) : port_(port) {

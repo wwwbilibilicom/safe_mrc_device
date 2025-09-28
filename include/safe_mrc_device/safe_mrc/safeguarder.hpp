@@ -36,6 +36,9 @@ class Safeguarder {
   void refresh_all();
   void set_zero_all();
   void set_rx_timeout_us(int timeout_us = 50);
+  void set_rx_delay_us(int delay_us = 200) {
+    rs485_serial_->set_rx_delay_us(delay_us);
+  }
 
  private:
   std::string port_;

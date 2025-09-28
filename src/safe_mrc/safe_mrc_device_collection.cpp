@@ -15,11 +15,13 @@ namespace safe_mrc {
 SafeMRCDeviceCollection::SafeMRCDeviceCollection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial),
       device_collection_(
-          std::make_unique<RS485DeviceCollection>(rs485_serial_)) {}
+          std::make_unique<RS485DeviceCollection>(rs485_serial_)),
+      rx_delay_us_(200) {}
 
 void SafeMRCDeviceCollection::enable_all() {
   for (auto device : get_safe_mrc_devices()) {
     send_command_to_device(device, MRCCmd{MRCMode::ADAPTATION, 0.0f});
+    std::this_thread::sleep_for(std::chrono::microseconds(rx_delay_us_));
   }
 }
 
@@ -31,7 +33,7 @@ void SafeMRCDeviceCollection::disable_all() {
 
 void SafeMRCDeviceCollection::refresh_one(int i) {
   auto device = get_safe_mrc_devices()[i];
-  send_command_to_device(device, MRCCmd{MRCMode::DEBUG, 0.0f});
+  send_command_to_device(device, MRCCmd{MRCMode::REFRESH, 0.0f});
 }
 
 void SafeMRCDeviceCollection::refresh_all() {
@@ -74,12 +76,7 @@ void SafeMRCDeviceCollection::send_command_to_device(
     std::shared_ptr<SafeMRCRS485Device> device, const MRCCmd& cmd) {
   MRCCmdFrame cmd_frame =
       device->create_cmd_frame(static_cast<MRCMode>(cmd.mode), cmd.current_A);
-  uint8_t* data = (uint8_t*)&cmd_frame;
-  size_t len = sizeof(MRCCmdFrame);
-  for (size_t i = 0; i < len; i++) {
-    std::cout << std::hex << (int)data[i] << " ";
-  }
-  std::cout << std::endl;
+  //   rs485_serial_.printf_frame((uint8_t*)&cmd_frame);
   rs485_serial_.write_rs485_data((uint8_t*)&cmd_frame);
 }
 

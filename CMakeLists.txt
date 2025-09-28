@@ -66,10 +66,10 @@ target_link_libraries(demo ${PROJECT_NAME})
 
 # Set RPATH only if using local library so it can be found at runtime
 if(SERIAL_LIB_SOURCE STREQUAL "local")
-  set_target_properties(${PROJECT_NAME} PROPERTIES
-      INSTALL_RPATH "${LOCAL_LIB_DIR}"
-      BUILD_WITH_INSTALL_RPATH TRUE
-  )
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    INSTALL_RPATH "${LOCAL_LIB_DIR}"
+    BUILD_WITH_INSTALL_RPATH TRUE
+)
 endif()
 
 # Install rules
@@ -89,8 +89,8 @@ install(DIRECTORY include/
 # Install the local serial library only if it exists and we used the local one
 if(SERIAL_LIB_SOURCE STREQUAL "local")
   install(FILES ${SERIAL_LIB}
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 endif()
 
 # Export targets
