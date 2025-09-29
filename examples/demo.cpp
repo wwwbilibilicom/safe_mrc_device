@@ -18,10 +18,9 @@ int main() {
     safe_mrc::Safeguarder safeguarder(port);
 
     // Initialize MRC devices
-    std::vector<safe_mrc::MRCType> mrc_types = {
-        safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52,
-        safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52};
-    std::vector<uint8_t> rs485_ids = {0x01, 0x02, 0x03, 0x04};
+    std::vector<safe_mrc::MRCType> mrc_types = {safe_mrc::MRCType::ROTARY52,
+                                                safe_mrc::MRCType::ROTARY52};
+    std::vector<uint8_t> rs485_ids = {0x01, 0x02};
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
     // Enable all MRCs
@@ -46,8 +45,6 @@ int main() {
     std::cout << "\n=== Controlling MRCs ===" << std::endl;
     safeguarder.get_mrc_component().mrc_control_all(
         {safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
          safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f}});
 
     for (int i = 0; i < 10; i++) {

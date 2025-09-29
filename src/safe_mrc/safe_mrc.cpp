@@ -7,9 +7,9 @@
  **************************************************/
 
 #include "safe_mrc_device/safe_mrc/safe_mrc.hpp"
-#include <string>
- namespace safe_mrc {
 
+#include <string>
+namespace safe_mrc {
 
 MRC::MRC(MRCType mrc_type, uint8_t rs485_id)
     : enabled_(false),
@@ -21,14 +21,16 @@ MRC::MRC(MRCType mrc_type, uint8_t rs485_id)
       rs485_id_(rs485_id),
       mrc_type_(mrc_type) {}
 
+void MRC::set_enabled(bool enable) { this->enabled_ = enable; }
 
-void MRC::set_enabled(bool enable) {this->enabled_ = enable; }
+void MRC::update_state(double q, double dq, double current,
+                       uint8_t collision_flag, uint8_t mode) {
+  state_q_ = q;
+  state_dq_ = dq;
+  state_current_ = current;
+  state_collision_flag_ = collision_flag;
 
-void MRC::update_state(double q, double dq, double current, uint8_t collision_flag) {
-    state_q_ = q;
-    state_dq_ = dq;
-    state_current_ = current;
-    state_collision_flag_ = collision_flag;
+  mode_ = static_cast<MRCMode>(mode);
 }
 
- }//namespace safe_mrc
+}  // namespace safe_mrc

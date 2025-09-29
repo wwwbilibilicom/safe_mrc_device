@@ -20,7 +20,7 @@ SafeMRCDeviceCollection::SafeMRCDeviceCollection(RS485Serial& rs485_serial)
 
 void SafeMRCDeviceCollection::enable_all() {
   for (auto device : get_safe_mrc_devices()) {
-    send_command_to_device(device, MRCCmd{MRCMode::ADAPTATION, 0.0f});
+    send_command_to_device(device, MRCCmd{MRCMode::FIX_LIMIT, 0.0f});
     std::this_thread::sleep_for(std::chrono::microseconds(rx_delay_us_));
   }
 }
