@@ -43,7 +43,5 @@ class SafeMRCDeviceCollection {
                               const MRCCmd& cmd);
 
   std::vector<std::shared_ptr<SafeMRCRS485Device>> get_safe_mrc_devices() const;
-
-  uint8_t rx_delay_us_;
 };
 }  // namespace safe_mrc
