@@ -15,13 +15,11 @@ namespace safe_mrc {
 SafeMRCDeviceCollection::SafeMRCDeviceCollection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial),
       device_collection_(
-          std::make_unique<RS485DeviceCollection>(rs485_serial_)),
-      rx_delay_us_(200) {}
+          std::make_unique<RS485DeviceCollection>(rs485_serial_)) {}
 
 void SafeMRCDeviceCollection::enable_all() {
   for (auto device : get_safe_mrc_devices()) {
     send_command_to_device(device, MRCCmd{MRCMode::FIX_LIMIT, 0.0f});
-    std::this_thread::sleep_for(std::chrono::microseconds(rx_delay_us_));
   }
 }
 
