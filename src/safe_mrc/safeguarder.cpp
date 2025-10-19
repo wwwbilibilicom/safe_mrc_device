@@ -23,6 +23,8 @@ void Safeguarder::init_mrcs(const std::vector<MRCType>& mrc_types,
                             const std::vector<uint8_t>& rs485_ids) {
   mrc_component_->init_mrc_devices(mrc_types, rs485_ids);
   register_mrc_device_collection(*mrc_component_);
+  // Start RX thread only after devices are registered
+  master_rs485_device_collection_->enable_rx_thread();
 }
 
 void Safeguarder::register_mrc_device_collection(
