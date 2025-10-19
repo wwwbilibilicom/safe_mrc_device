@@ -68,7 +68,7 @@ int main() {
         std::cout << std::setw(15) << static_cast<int>(mrc.get_rs485_id())
                   << std::setw(15) << mrc.get_position() << std::setw(15)
                   << mrc.get_velocity() << std::setw(15) << mrc.get_current()
-                  << std::setw(18) << mrc.get_collision_flag() << std::setw(10)
+                  << std::setw(18) << static_cast<int>(mrc.get_collision_flag()) << std::setw(10)
                   << mrc.get_mode_string() << std::endl;
       }
       // print separator line

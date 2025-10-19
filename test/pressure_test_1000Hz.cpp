@@ -82,7 +82,7 @@ int main() {
                     << std::setw(15) << mrc.get_position() << std::setw(15)
                     << mrc.get_velocity() << std::setw(15)
                     << mrc.get_current() << std::setw(18)
-                    << mrc.get_collision_flag() << std::setw(10)
+                    << static_cast<int>(mrc.get_collision_flag()) << std::setw(10)
                     << mrc.get_mode_string() << std::endl;
         }
         std::cout << std::string(88, '-') << std::endl;

@@ -19,8 +19,6 @@ RS485Device::~RS485Device(){}
 
 RS485DeviceCollection::RS485DeviceCollection(RS485Serial& rs485_serial)
     : rs485_serial_(rs485_serial) {
-  // Defer starting RX thread; must be explicitly enabled by owner after
-  // all devices are registered to avoid multiple threads per serial.
 }
 
 RS485DeviceCollection::~RS485DeviceCollection() { disable_rx_thread(); }
