@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/safe_mrc_deviceTargets.cmake")
+
+check_required_components(safe_mrc_device)
