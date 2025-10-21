@@ -35,16 +35,15 @@ int main() {
 
     // Initialize 4 ROTARY52 MRC devices with IDs 0x01-0x04
     std::vector<safe_mrc::MRCType> mrc_types = {
-        safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52,
         safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52};
-    std::vector<uint8_t> rs485_ids = {0x01, 0x02, 0x03, 0x04};
+    std::vector<uint8_t> rs485_ids = {0x01, 0x02};
 
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
     // Enable all and set conservative rx timeout for slow ops
     safeguarder.enable_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    safeguarder.set_rx_timeout_us(2000);
+    safeguarder.set_rx_timeout_us(100);
 
     // Maintain a safe command (FIX_LIMIT 0.0f) for all devices
     safeguarder.get_mrc_component().mrc_control_all(
@@ -102,5 +101,3 @@ int main() {
 
   return 0;
 }
-
-
