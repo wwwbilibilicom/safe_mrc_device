@@ -48,8 +48,6 @@ int main() {
     // Maintain a safe command (FIX_LIMIT 0.0f) for all devices
     safeguarder.get_mrc_component().mrc_control_all(
         {safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
          safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f}});
 
     using clock = std::chrono::steady_clock;
