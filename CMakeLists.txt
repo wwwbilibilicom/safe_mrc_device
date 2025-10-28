@@ -47,6 +47,7 @@ set(SOURCES
     src/safe_mrc/safe_mrc_device_collection.cpp
     src/safe_mrc/safeguarder.cpp
     src/safe_mrc/safe_mrc_component.cpp
+    src/rs485bus/bus_diagnostics.cpp
     src/rs485bus/rs485_serial.cpp
     src/rs485bus/rs485_device_collection.cpp
 )

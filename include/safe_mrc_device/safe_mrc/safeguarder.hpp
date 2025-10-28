@@ -9,9 +9,11 @@
 #pragma once
 
 // #include <safe_mrc_device/rs485bus/rs485_serial.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "safe_mrc_device/rs485bus/bus_diagnostics.hpp"
 #include "safe_mrc_device/rs485bus/rs485_device_collection.hpp"
 #include "safe_mrc_device/rs485bus/rs485_serial.hpp"
 #include "safe_mrc_device/safe_mrc/safe_mrc_component.hpp"
@@ -30,6 +32,7 @@ class Safeguarder {
   RS485DeviceCollection& get_master_rs485_device_collection() {
     return *master_rs485_device_collection_;
   }
+  BusDiagnostics& get_bus_diagnostics() { return *diagnostics_; }
 
   void enable_all();
   void disable_all();
@@ -42,6 +45,7 @@ class Safeguarder {
 
  private:
   std::string port_;
+  std::shared_ptr<BusDiagnostics> diagnostics_;
   std::unique_ptr<RS485Serial> rs485_serial_;
   std::unique_ptr<MRCComponent> mrc_component_;
   std::unique_ptr<RS485DeviceCollection> master_rs485_device_collection_;

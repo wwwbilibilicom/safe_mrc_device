@@ -10,6 +10,7 @@
 #include <thread>
 #include <vector>
 
+#include <safe_mrc_device/rs485bus/bus_diagnostics.hpp>
 #include <safe_mrc_device/safe_mrc/safe_mrc.hpp>
 #include <safe_mrc_device/safe_mrc/safeguarder.hpp>
 
@@ -86,6 +87,24 @@ int main() {
                     << mrc.get_mode_string() << std::endl;
         }
         std::cout << std::string(88, '-') << std::endl;
+
+        const auto reports = safeguarder.get_bus_diagnostics().collect_reports();
+        if (!reports.empty()) {
+          std::cout << "\n[Bus Diagnostics]" << std::endl;
+          std::cout << std::setw(15) << "MRC RS485 ID" << std::setw(18)
+                    << "TX Success (%)" << std::setw(18) << "RX Success (%)"
+                    << std::setw(18) << "TX Attempts" << std::setw(15)
+                    << "RX Attempts" << std::endl;
+          std::cout << std::string(84, '-') << std::endl;
+          for (const auto& report : reports) {
+            std::cout << std::setw(15) << static_cast<int>(report.id)
+                      << std::setw(18) << report.tx_success_rate * 100.0
+                      << std::setw(18) << report.rx_success_rate * 100.0
+                      << std::setw(18) << report.tx_attempts << std::setw(15)
+                      << report.rx_attempts << std::endl;
+          }
+          std::cout << std::string(84, '-') << std::endl;
+        }
       }
 
       std::this_thread::sleep_until(next);

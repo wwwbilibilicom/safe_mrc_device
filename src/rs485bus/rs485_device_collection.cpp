@@ -17,8 +17,9 @@
 namespace safe_mrc {
 RS485Device::~RS485Device(){}
 
-RS485DeviceCollection::RS485DeviceCollection(RS485Serial& rs485_serial)
-    : rs485_serial_(rs485_serial) {
+RS485DeviceCollection::RS485DeviceCollection(
+    RS485Serial& rs485_serial, std::shared_ptr<BusDiagnostics> diagnostics)
+    : rs485_serial_(rs485_serial), diagnostics_(diagnostics) {
 }
 
 RS485DeviceCollection::~RS485DeviceCollection() { disable_rx_thread(); }
@@ -56,6 +57,9 @@ void RS485DeviceCollection::add_device(
   // Add device to our collection
   uint8_t device_id = device->get_rs485_id();
   devices_[device_id] = device;
+  if (diagnostics_) {
+    diagnostics_->register_device(device_id);
+  }
 }
 
 void RS485DeviceCollection::remove_device(
@@ -119,10 +123,16 @@ bool RS485DeviceCollection::unpackStream(std::vector<uint8_t>& buf) {
     memcpy(&frame, fr, sizeof(MRCFdkFrame));
     uint16_t crc_recv = frame.CRC16Data;
     uint16_t crc_calc = crc_ccitt(0xFFFF, fr, sizeof(MRCFdkFrame) - 2);
+    if (diagnostics_) {
+      diagnostics_->record_rx_attempt(frame.id);
+    }
     if (crc_recv != crc_calc) {
       idx++;
       continue;
     }  // 同步
+    if (diagnostics_) {
+      diagnostics_->record_rx_success(frame.id);
+    }
     dispatch_frame_callback(frame);
     // 剩余尾巴
     buf.erase(buf.begin(), buf.begin() + idx + sizeof(MRCFdkFrame));

@@ -7,14 +7,15 @@
  **************************************************/
 #pragma once
 
-#include <safe_mrc_device/safe_mrc/safe_mrc_protocol.h>
-
 #include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <thread>
 
+#include <safe_mrc_device/safe_mrc/safe_mrc_protocol.h>
+
+#include "bus_diagnostics.hpp"
 #include "rs485_serial.hpp"
 
 namespace safe_mrc {
@@ -34,7 +35,9 @@ class RS485Device {
 
 class RS485DeviceCollection {
  public:
-  RS485DeviceCollection(RS485Serial& rs485_serial);
+  RS485DeviceCollection(
+      RS485Serial& rs485_serial,
+      std::shared_ptr<BusDiagnostics> diagnostics = nullptr);
   virtual ~RS485DeviceCollection();
 
   bool enable_rx_thread();
@@ -48,10 +51,14 @@ class RS485DeviceCollection {
     return devices_;
   }
   RS485Serial& get_rs485_serial() const { return rs485_serial_; }
+  std::shared_ptr<BusDiagnostics> get_diagnostics() const {
+    return diagnostics_;
+  }
 
  private:
   RS485Serial& rs485_serial_;
   std::map<uint8_t, std::shared_ptr<RS485Device>> devices_;
+  std::shared_ptr<BusDiagnostics> diagnostics_;
 
   void rxThread();
 

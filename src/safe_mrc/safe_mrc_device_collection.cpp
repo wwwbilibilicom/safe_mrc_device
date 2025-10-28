@@ -12,10 +12,12 @@
 #include <iostream>
 
 namespace safe_mrc {
-SafeMRCDeviceCollection::SafeMRCDeviceCollection(RS485Serial& rs485_serial)
+SafeMRCDeviceCollection::SafeMRCDeviceCollection(
+    RS485Serial& rs485_serial, std::shared_ptr<BusDiagnostics> diagnostics)
     : rs485_serial_(rs485_serial),
-      device_collection_(
-          std::make_unique<RS485DeviceCollection>(rs485_serial_)) {}
+      diagnostics_(diagnostics),
+      device_collection_(std::make_unique<RS485DeviceCollection>(
+          rs485_serial_, diagnostics_)) {}
 
 void SafeMRCDeviceCollection::enable_all() {
   for (auto device : get_safe_mrc_devices()) {
@@ -75,7 +77,13 @@ void SafeMRCDeviceCollection::send_command_to_device(
   MRCCmdFrame cmd_frame =
       device->create_cmd_frame(static_cast<MRCMode>(cmd.mode), cmd.current_A);
   //   rs485_serial_.printf_frame((uint8_t*)&cmd_frame);
-  rs485_serial_.write_rs485_data((uint8_t*)&cmd_frame);
+  if (diagnostics_) {
+    diagnostics_->record_tx_attempt(device->get_rs485_id());
+  }
+  size_t written = rs485_serial_.write_rs485_data((uint8_t*)&cmd_frame);
+  if (diagnostics_ && written == sizeof(MRCCmdFrame)) {
+    diagnostics_->record_tx_success(device->get_rs485_id());
+  }
 }
 
 std::vector<std::shared_ptr<SafeMRCRS485Device>>

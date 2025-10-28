@@ -19,7 +19,9 @@
 namespace safe_mrc {
 class SafeMRCDeviceCollection {
  public:
-  SafeMRCDeviceCollection(RS485Serial& rs485_serial);
+  SafeMRCDeviceCollection(
+      RS485Serial& rs485_serial,
+      std::shared_ptr<BusDiagnostics> diagnostics = nullptr);
   virtual ~SafeMRCDeviceCollection() = default;
 
   void enable_all();
@@ -34,9 +36,13 @@ class SafeMRCDeviceCollection {
 
   std::vector<MRC> get_mrcs() const;
   RS485DeviceCollection& get_device_collection() { return *device_collection_; }
+  std::shared_ptr<BusDiagnostics> get_bus_diagnostics() const {
+    return diagnostics_;
+  }
 
  protected:
   RS485Serial& rs485_serial_;
+  std::shared_ptr<BusDiagnostics> diagnostics_;
   std::unique_ptr<RS485DeviceCollection> device_collection_;
 
   void send_command_to_device(std::shared_ptr<SafeMRCRS485Device> device,

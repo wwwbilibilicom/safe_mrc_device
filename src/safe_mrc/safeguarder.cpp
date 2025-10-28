@@ -13,10 +13,12 @@
 namespace safe_mrc {
 
 Safeguarder::Safeguarder(const std::string& port) : port_(port) {
+  diagnostics_ = std::make_shared<BusDiagnostics>();
   rs485_serial_ = std::make_unique<RS485Serial>(port_);
   master_rs485_device_collection_ =
-      std::make_unique<RS485DeviceCollection>(*rs485_serial_);
-  mrc_component_ = std::make_unique<MRCComponent>(*rs485_serial_);
+      std::make_unique<RS485DeviceCollection>(*rs485_serial_, diagnostics_);
+  mrc_component_ =
+      std::make_unique<MRCComponent>(*rs485_serial_, diagnostics_);
 }
 
 void Safeguarder::init_mrcs(const std::vector<MRCType>& mrc_types,
