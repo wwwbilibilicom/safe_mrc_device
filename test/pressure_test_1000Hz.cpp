@@ -36,9 +36,8 @@ int main() {
 
     // Initialize 4 ROTARY52 MRC devices with IDs 0x01-0x04
     std::vector<safe_mrc::MRCType> mrc_types = {
-        safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52,
         safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52};
-    std::vector<uint8_t> rs485_ids = {0x01, 0x02, 0x03, 0x04};
+    std::vector<uint8_t> rs485_ids = {0x01, 0x02};
 
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
@@ -50,8 +49,6 @@ int main() {
     // Maintain a safe command (FIX_LIMIT 0.0f) for all devices
     safeguarder.get_mrc_component().mrc_control_all(
         {safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
-         safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f},
          safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f}});
 
     using clock = std::chrono::steady_clock;
@@ -88,23 +85,8 @@ int main() {
         }
         std::cout << std::string(88, '-') << std::endl;
 
-        const auto reports = safeguarder.get_bus_diagnostics().collect_reports();
-        if (!reports.empty()) {
-          std::cout << "\n[Bus Diagnostics]" << std::endl;
-          std::cout << std::setw(15) << "MRC RS485 ID" << std::setw(18)
-                    << "TX Success (%)" << std::setw(18) << "RX Success (%)"
-                    << std::setw(18) << "TX Attempts" << std::setw(15)
-                    << "RX Attempts" << std::endl;
-          std::cout << std::string(84, '-') << std::endl;
-          for (const auto& report : reports) {
-            std::cout << std::setw(15) << static_cast<int>(report.id)
-                      << std::setw(18) << report.tx_success_rate * 100.0
-                      << std::setw(18) << report.rx_success_rate * 100.0
-                      << std::setw(18) << report.tx_attempts << std::setw(15)
-                      << report.rx_attempts << std::endl;
-          }
-          std::cout << std::string(84, '-') << std::endl;
-        }
+        safeguarder.get_bus_diagnostics().show_reports();
+        
       }
 
       std::this_thread::sleep_until(next);

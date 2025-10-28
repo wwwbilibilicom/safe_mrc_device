@@ -129,16 +129,16 @@ bool RS485DeviceCollection::unpackStream(std::vector<uint8_t>& buf) {
     if (crc_recv != crc_calc) {
       idx++;
       continue;
-    }  // 同步
+    }
     if (diagnostics_) {
       diagnostics_->record_rx_success(frame.id);
     }
     dispatch_frame_callback(frame);
-    // 剩余尾巴
+    
     buf.erase(buf.begin(), buf.begin() + idx + sizeof(MRCFdkFrame));
     return true;
   }
-  // 保留尾巴
+
   if (idx > 0) buf.erase(buf.begin(), buf.begin() + idx);
   return false;
 }

@@ -9,6 +9,8 @@
 #include "safe_mrc_device/rs485bus/bus_diagnostics.hpp"
 
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 
 namespace safe_mrc {
 
@@ -74,6 +76,29 @@ std::vector<BusDiagnostics::DeviceReport> BusDiagnostics::collect_reports()
               return lhs.id < rhs.id;
             });
   return reports;
+}
+
+void BusDiagnostics::show_reports() {
+
+  auto reports = collect_reports();
+
+  if (!reports.empty()) {
+    std::cout << "\n[Bus Diagnostics]" << std::endl;
+    std::cout << std::setw(15) << "RS485 ID" << std::setw(18)
+              << "TX Success (%)" << std::setw(18) << "RX Success (%)"
+              << std::setw(18) << "TX Attempts" << std::setw(15)
+              << "RX Attempts" << std::endl;
+    std::cout << std::string(84, '-') << std::endl;
+    for (const auto& report : reports) {
+      std::cout << std::setw(15) << static_cast<int>(report.id)
+                << std::setw(18) << report.tx_success_rate * 100.0
+                << std::setw(18) << report.rx_success_rate * 100.0
+                << std::setw(18) << report.tx_attempts << std::setw(15)
+                << report.rx_attempts << std::endl;
+    }
+    std::cout << std::string(84, '-') << std::endl;
+  }
+  
 }
 
 }  // namespace safe_mrc

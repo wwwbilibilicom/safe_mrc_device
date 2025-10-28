@@ -44,6 +44,7 @@ class BusDiagnostics {
   void record_rx_success(uint8_t id);
 
   std::vector<DeviceReport> collect_reports() const;
+  void show_reports();
 
  private:
   mutable std::mutex mutex_;
