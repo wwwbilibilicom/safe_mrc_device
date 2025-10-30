@@ -27,9 +27,7 @@ int main() {
     std::cout << "\n=== Enabling MRCs ===" << std::endl;
     safeguarder.enable_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // Allow time (2ms) for the MRCs to respond for slow operations like
-    // enabling
-    safeguarder.set_rx_timeout_us(2000);
+
 
     // Access MRCs through component
     for (const auto& mrc : safeguarder.get_mrc_component().get_mrcs()) {

@@ -13,6 +13,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <atomic>
 
 namespace safe_mrc {
 
@@ -119,11 +120,19 @@ class BusDetector {
    */
   bool isEnabled() const;
 
- private:
+  
+  void registerDetectorDevice(uint8_t device_id);
+  void unregisterDetectorDevice(uint8_t device_id);
+  
+  private:
   mutable std::mutex mutex_;                        // Mutex for thread-safe access
   std::map<uint8_t, DeviceStats> device_stats_;    // Device statistics storage
   std::map<uint8_t, std::chrono::steady_clock::time_point> pending_requests_;  // Pending request timestamps
-  bool enabled_;                                    // Enable/disable flag
+  std::atomic<bool> enabled_;                                    // Enable/disable flag
+  void registerDeviceStats(uint8_t device_id);
+  void unregisterDeviceStats(uint8_t device_id);
+  void registerDevicePendingRequest(uint8_t device_id);
+  void unregisterDevicePendingRequest(uint8_t device_id);
 
   /**
    * @brief Update success rate for a device

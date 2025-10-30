@@ -19,6 +19,7 @@ void MRCComponent::init_mrc_devices(std::vector<MRCType>mrc_types, std::vector<u
         auto mrc_device = std::make_shared<SafeMRCRS485Device>(mrcs_.back());
         get_device_collection().add_device(mrc_device);
     }
+    std::cout << "[MRCComponent] Initialized " << mrcs_.size() << " MRC devices." << std::endl;
 }
 
 }

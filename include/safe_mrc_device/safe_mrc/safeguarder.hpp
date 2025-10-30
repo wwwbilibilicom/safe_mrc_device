@@ -35,11 +35,7 @@ class Safeguarder {
   void disable_all();
   void refresh_all();
   void set_zero_all();
-  void set_rx_timeout_us(int timeout_us = 50);
-  void set_rx_delay_us(int delay_us = 200) {
-    rs485_serial_->set_rx_delay_us(delay_us);
-  }
-
+  
  private:
   std::string port_;
   std::unique_ptr<RS485Serial> rs485_serial_;

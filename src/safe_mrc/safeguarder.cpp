@@ -23,7 +23,6 @@ void Safeguarder::init_mrcs(const std::vector<MRCType>& mrc_types,
                             const std::vector<uint8_t>& rs485_ids) {
   mrc_component_->init_mrc_devices(mrc_types, rs485_ids);
   register_mrc_device_collection(*mrc_component_);
-  master_rs485_device_collection_->enable_rx_thread();
 }
 
 void Safeguarder::register_mrc_device_collection(
@@ -31,6 +30,8 @@ void Safeguarder::register_mrc_device_collection(
   for (const auto& [id, device] :
        device_collection.get_device_collection().get_devices()) {
     master_rs485_device_collection_->add_device(device);
+    // Allocate the detector stats entry
+    master_rs485_device_collection_->get_bus_detector().registerDetectorDevice(id);
   }
   sub_mrc_device_collections_.push_back(&device_collection);
 }
@@ -61,10 +62,6 @@ void Safeguarder::refresh_all() {
        sub_mrc_device_collections_) {
     device_collection->refresh_all();
   }
-}
-
-void Safeguarder::set_rx_timeout_us(int timeout_us) {
-  rs485_serial_->setTimeout(timeout_us);
 }
 
 }  // namespace safe_mrc

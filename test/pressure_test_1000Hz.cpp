@@ -22,7 +22,7 @@ void handle_sigint(int) {
 }  // namespace
 
 int main() {
-  std::string port = "/dev/ttyUSB1";
+  std::string port = "/dev/ttyUSB0";
 
   std::signal(SIGINT, handle_sigint);
 
@@ -37,18 +37,18 @@ int main() {
     std::vector<safe_mrc::MRCType> mrc_types = {
         safe_mrc::MRCType::ROTARY52, safe_mrc::MRCType::ROTARY52};
     std::vector<uint8_t> rs485_ids = {0x01, 0x02};
-
+    
+    std::cout << "Initializing MRC devices..." << std::endl;
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
     // Enable bus detection
     std::cout << "Enabling bus detection..." << std::endl;
-    safeguarder.get_mrc_component().get_device_collection()
+    safeguarder.get_master_rs485_device_collection()
         .enable_bus_detection(true);
 
     // Enable all and set conservative rx timeout for slow ops
     safeguarder.enable_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    safeguarder.set_rx_timeout_us(100);
 
     // Maintain a safe command (FIX_LIMIT 0.0f) for all devices
     safeguarder.get_mrc_component().mrc_control_all(
@@ -59,7 +59,6 @@ int main() {
     auto next = clock::now();
     size_t ticks = 0;
 
-      safeguarder.set_rx_delay_us(150);
     // Print format config
     std::cout << std::fixed << std::setprecision(2) << std::left;
 
@@ -90,30 +89,9 @@ int main() {
         std::cout << std::string(88, '-') << std::endl;
 
         // Print bus detection statistics
-        auto* bus_detector = safeguarder.get_mrc_component()
-                                 .get_device_collection()
-                                 .get_bus_detector();
-        if (bus_detector && bus_detector->isEnabled()) {
-          std::cout << "\n[Bus Detection Statistics]" << std::endl;
-          std::cout << std::setw(10) << "DevID" << std::setw(15) << "Total Req"
-                    << std::setw(15) << "Success" << std::setw(15) << "Failed"
-                    << std::setw(18) << "Success Rate(%)"
-                    << std::setw(18) << "Avg Time(us)"
-                    << std::setw(18) << "Max Time(us)" << std::endl;
-          std::cout << std::string(109, '-') << std::endl;
-
-          for (uint8_t id : rs485_ids) {
-            auto stats = bus_detector->getDeviceStats(id);
-            std::cout << std::setw(10) << static_cast<int>(stats.device_id)
-                      << std::setw(15) << stats.total_requests << std::setw(15)
-                      << stats.successful_responses << std::setw(15)
-                      << stats.failed_responses << std::setw(18)
-                      << stats.success_rate << std::setw(18)
-                      << stats.avg_response_time_us << std::setw(18)
-                      << stats.max_response_time_us << std::endl;
-          }
-          std::cout << std::string(109, '-') << std::endl;
-        }
+        std::cout << safeguarder.get_master_rs485_device_collection().
+                                get_bus_detector().generateReport()
+                                 << std::endl;
       }
 
       std::this_thread::sleep_until(next);

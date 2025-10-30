@@ -21,8 +21,8 @@ namespace safe_mrc {
         uint8_t id;                     // 1 bytes
         uint8_t mode;                  // 1 bytes
         int32_t des_coil_current;            // 2 bytes
-        uint16_t CRC16Data;             // 2 bytes
-    } MRCCmdFrame;                 // 8 bytes 
+        uint16_t CRC16Data;             // 4 bytes
+    } MRCCmdFrame;                 // 10 bytes 
 #pragma pack()
 
 #pragma pack(1)

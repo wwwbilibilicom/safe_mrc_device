@@ -7,8 +7,6 @@
  **************************************************/
 #pragma once
 
-#include <safe_mrc_device/safe_mrc/safe_mrc_protocol.h>
-
 #include <atomic>
 #include <cstdint>
 #include <map>
@@ -38,11 +36,9 @@ class RS485DeviceCollection {
   RS485DeviceCollection(RS485Serial& rs485_serial);
   virtual ~RS485DeviceCollection();
 
-  bool enable_rx_thread();
-  void disable_rx_thread();
-
   void add_device(const std::shared_ptr<RS485Device>& device);
   void remove_device(const std::shared_ptr<RS485Device>& device);
+
   void dispatch_frame_callback(safe_mrc::MRCFdkFrame& frame);
 
   const std::map<uint8_t, std::shared_ptr<RS485Device>>& get_devices() const {
@@ -51,8 +47,8 @@ class RS485DeviceCollection {
   RS485Serial& get_rs485_serial() const { return rs485_serial_; }
 
   // Bus detection interface
-  BusDetector* get_bus_detector() { return &bus_detector_; }
-  const BusDetector* get_bus_detector() const { return &bus_detector_; }
+  BusDetector & get_bus_detector() { return bus_detector_; }
+  const BusDetector & get_bus_detector() const { return bus_detector_; }
   void enable_bus_detection(bool enable) { bus_detector_.setEnabled(enable); }
 
  private:
@@ -60,10 +56,6 @@ class RS485DeviceCollection {
   std::map<uint8_t, std::shared_ptr<RS485Device>> devices_;
   BusDetector bus_detector_;  // Bus detection and statistics
 
-  void rxThread();
 
-  bool rx_thread_running_ = false;
-  std::thread rx_thread_;
-  bool unpackStream(std::vector<uint8_t>& buf);
 };
 }  // namespace safe_mrc

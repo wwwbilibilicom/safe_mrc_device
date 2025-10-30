@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <iostream>
 
 namespace safe_mrc {
 
@@ -42,19 +43,22 @@ void BusDetector::recordRequestStart(uint8_t device_id) {
 
 void BusDetector::recordSuccess(uint8_t device_id) {
   if (!enabled_) {
+    std::cout << "[RS485 Detector] Not enabled" << std::endl;
     return;
   }
 
   std::lock_guard<std::mutex> lock(mutex_);
-
+  //std::cout << "[RS485 Detector] Recording success for device " << static_cast<int>(device_id) << std::endl;
   auto it = device_stats_.find(device_id);
   if (it == device_stats_.end()) {
+    std::cout << "[RS485 Detector] Device not found" << std::endl;
     return;  // Device not found, shouldn't happen
   }
 
   // Calculate response time from pending request
   auto pending_it = pending_requests_.find(device_id);
   if (pending_it == pending_requests_.end()) {
+    std::cout << "[RS485 Detector] No pending request found" << std::endl;
     return;  // No pending request for this device
   }
 
@@ -125,8 +129,51 @@ std::map<uint8_t, DeviceStats> BusDetector::getAllDeviceStats() const {
   return device_stats_;
 }
 
-void BusDetector::resetStats(uint8_t device_id) {
+void BusDetector::registerDeviceStats(uint8_t device_id) {
   std::lock_guard<std::mutex> lock(mutex_);
+
+  // Initialize device stats if not exists
+  if (device_stats_.find(device_id) == device_stats_.end()) {
+    DeviceStats stats;
+    stats.device_id = device_id;
+    stats.min_response_time_us = std::numeric_limits<double>::max();
+    device_stats_[device_id] = stats;
+    std::cout << "[RS485 Detector] Registered device stats for device "
+              << static_cast<int>(device_id) << std::endl;
+  }
+}
+
+void BusDetector::unregisterDeviceStats(uint8_t device_id) {
+  device_stats_.erase(device_id);
+}
+
+void BusDetector::registerDevicePendingRequest(uint8_t device_id) {
+
+    //initialize pending request timestamp
+    if (pending_requests_.find(device_id) == pending_requests_.end()) {
+      pending_requests_[device_id] = std::chrono::steady_clock::now();
+      std::cout << "[RS485 Detector] Registered pending request for device "
+                << static_cast<int>(device_id) << std::endl;
+    }
+}
+
+
+void BusDetector::unregisterDevicePendingRequest(uint8_t device_id) {
+  pending_requests_.erase(device_id);
+}
+
+void BusDetector::registerDetectorDevice(uint8_t device_id) {
+  std::cout << "[RS485 Detector] Registering device " << static_cast<int>(device_id) << std::endl;
+  registerDeviceStats(device_id);
+  registerDevicePendingRequest(device_id);
+}
+
+void BusDetector::unregisterDetectorDevice(uint8_t device_id) {
+  unregisterDeviceStats(device_id);
+  unregisterDevicePendingRequest(device_id);
+}
+
+void BusDetector::resetStats(uint8_t device_id) {
 
   if (device_id == 0) {
     // Reset all devices
@@ -204,12 +251,10 @@ std::string BusDetector::generateReport() const {
 }
 
 void BusDetector::setEnabled(bool enabled) {
-  std::lock_guard<std::mutex> lock(mutex_);
   enabled_ = enabled;
 }
 
 bool BusDetector::isEnabled() const {
-  std::lock_guard<std::mutex> lock(mutex_);
   return enabled_;
 }
 

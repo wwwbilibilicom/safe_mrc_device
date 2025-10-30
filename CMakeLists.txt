@@ -47,6 +47,9 @@ set(SOURCES
     src/safe_mrc/safe_mrc_device_collection.cpp
     src/safe_mrc/safeguarder.cpp
     src/safe_mrc/safe_mrc_component.cpp
+    src/rs485bus/rs485_ring_buffer.cpp
+    src/rs485bus/rs485_rx_fifo.cpp
+    src/rs485bus/rs485_tx_lifo.cpp
     src/rs485bus/rs485_serial.cpp
     src/rs485bus/rs485_device_collection.cpp
     src/rs485bus/bus_detector.cpp
@@ -68,6 +71,10 @@ target_link_libraries(demo ${PROJECT_NAME})
 # 1000Hz pressure test executable
 add_executable(pressure_test_1000Hz test/pressure_test_1000Hz.cpp)
 target_link_libraries(pressure_test_1000Hz ${PROJECT_NAME})
+
+# RS485 bus test executable
+add_executable(rs485_bus_test test/rs485_bus_test.cpp)
+target_link_libraries(rs485_bus_test ${PROJECT_NAME})
 
 # Set RPATH only if using local library so it can be found at runtime
 if(SERIAL_LIB_SOURCE STREQUAL "local")
