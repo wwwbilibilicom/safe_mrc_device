@@ -15,6 +15,7 @@
 #include <memory>
 #include <thread>
 
+#include "bus_detector.hpp"
 #include "rs485_serial.hpp"
 
 namespace safe_mrc {
@@ -49,9 +50,15 @@ class RS485DeviceCollection {
   }
   RS485Serial& get_rs485_serial() const { return rs485_serial_; }
 
+  // Bus detection interface
+  BusDetector* get_bus_detector() { return &bus_detector_; }
+  const BusDetector* get_bus_detector() const { return &bus_detector_; }
+  void enable_bus_detection(bool enable) { bus_detector_.setEnabled(enable); }
+
  private:
   RS485Serial& rs485_serial_;
   std::map<uint8_t, std::shared_ptr<RS485Device>> devices_;
+  BusDetector bus_detector_;  // Bus detection and statistics
 
   void rxThread();
 

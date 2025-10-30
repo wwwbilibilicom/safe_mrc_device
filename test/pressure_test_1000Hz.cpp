@@ -22,7 +22,7 @@ void handle_sigint(int) {
 }  // namespace
 
 int main() {
-  std::string port = "/dev/ttyUSB0";
+  std::string port = "/dev/ttyUSB1";
 
   std::signal(SIGINT, handle_sigint);
 
@@ -39,6 +39,11 @@ int main() {
     std::vector<uint8_t> rs485_ids = {0x01, 0x02};
 
     safeguarder.init_mrcs(mrc_types, rs485_ids);
+
+    // Enable bus detection
+    std::cout << "Enabling bus detection..." << std::endl;
+    safeguarder.get_mrc_component().get_device_collection()
+        .enable_bus_detection(true);
 
     // Enable all and set conservative rx timeout for slow ops
     safeguarder.enable_all();
@@ -83,6 +88,32 @@ int main() {
                     << mrc.get_mode_string() << std::endl;
         }
         std::cout << std::string(88, '-') << std::endl;
+
+        // Print bus detection statistics
+        auto* bus_detector = safeguarder.get_mrc_component()
+                                 .get_device_collection()
+                                 .get_bus_detector();
+        if (bus_detector && bus_detector->isEnabled()) {
+          std::cout << "\n[Bus Detection Statistics]" << std::endl;
+          std::cout << std::setw(10) << "DevID" << std::setw(15) << "Total Req"
+                    << std::setw(15) << "Success" << std::setw(15) << "Failed"
+                    << std::setw(18) << "Success Rate(%)"
+                    << std::setw(18) << "Avg Time(us)"
+                    << std::setw(18) << "Max Time(us)" << std::endl;
+          std::cout << std::string(109, '-') << std::endl;
+
+          for (uint8_t id : rs485_ids) {
+            auto stats = bus_detector->getDeviceStats(id);
+            std::cout << std::setw(10) << static_cast<int>(stats.device_id)
+                      << std::setw(15) << stats.total_requests << std::setw(15)
+                      << stats.successful_responses << std::setw(15)
+                      << stats.failed_responses << std::setw(18)
+                      << stats.success_rate << std::setw(18)
+                      << stats.avg_response_time_us << std::setw(18)
+                      << stats.max_response_time_us << std::endl;
+          }
+          std::cout << std::string(109, '-') << std::endl;
+        }
       }
 
       std::this_thread::sleep_until(next);

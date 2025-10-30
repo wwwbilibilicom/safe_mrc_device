@@ -74,6 +74,11 @@ void RS485DeviceCollection::dispatch_frame_callback(
     safe_mrc::MRCFdkFrame& frame) {
   auto it = devices_.find(frame.id);
   if (it != devices_.end()) {
+    // Record successful response for bus detection
+    if (bus_detector_.isEnabled()) {
+      bus_detector_.recordSuccess(frame.id);
+    }
+
     it->second->callback(frame);
   }
   // Note: Silently ignore frames for unknown devices (this is normal in RS485
@@ -85,19 +90,30 @@ void RS485DeviceCollection::rxThread() {
   while (rx_thread_running_) {
     try {
       size_t avail = rs485_serial_.available();
-      if (avail == 0) {
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-        continue;
+
+      // Read new data if available
+      if (avail > 0) {
+        if (avail > temp.size()) avail = temp.size();
+        rs485_serial_.rx_busy_.store(true, std::memory_order_relaxed);
+        size_t n = rs485_serial_.read(temp.data(), avail);
+        rs485_serial_.rx_busy_.store(false, std::memory_order_relaxed);
+        if (n > 0) {
+          rs485_serial_.rx_buffer_.insert(rs485_serial_.rx_buffer_.end(),
+                                          temp.begin(), temp.begin() + n);
+        }
       }
-      if (avail > temp.size()) avail = temp.size();
-      rs485_serial_.rx_busy_.store(true, std::memory_order_relaxed);
-      size_t n = rs485_serial_.read(temp.data(), avail);
-      rs485_serial_.rx_busy_.store(false, std::memory_order_relaxed);
-      if (n > 0) {
-        rs485_serial_.rx_buffer_.insert(rs485_serial_.rx_buffer_.end(),
-                                        temp.begin(), temp.begin() + n);
-        unpackStream(rs485_serial_.rx_buffer_);
+
+      // PHASE 1 FIX: Continuously drain all complete frames from buffer
+      // This prevents frame accumulation and latency in multi-slave scenarios
+      // Previously: unpackStream() was called only once, causing subsequent
+      // frames to be stuck until new bytes arrived
+      while (unpackStream(rs485_serial_.rx_buffer_)) {
+        // Continue unpacking until no complete frames remain
       }
+
+      // Short sleep to avoid busy-waiting (10us is sufficient for 1kHz operation)
+      std::this_thread::sleep_for(std::chrono::microseconds(10));
+
     } catch (const std::exception& e) {
       rs485_serial_.set_last_error(e.what());
       rs485_serial_.rx_busy_.store(false, std::memory_order_relaxed);
