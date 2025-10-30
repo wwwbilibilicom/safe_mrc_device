@@ -57,11 +57,31 @@ void Safeguarder::set_zero_all() {
   }
 }
 
-void Safeguarder::refresh_all() {
+void Safeguarder::refresh_all_commands() {
   for (SafeMRCDeviceCollection* device_collection :
        sub_mrc_device_collections_) {
     device_collection->refresh_all();
   }
+} // if there are differnet safe mrc groups in the same bus,find all group and refresh all
+
+int Safeguarder::refresh_all_states() {
+  int received_count = 0;
+
+  for (SafeMRCDeviceCollection* device_collection : sub_mrc_device_collections_) {
+    auto& dev_collection = device_collection->get_device_collection();
+
+    for (const auto& [id, device] : dev_collection.get_devices()) {
+      MRCFdkFrame frame;
+
+      // Non-blocking pop: only process valid frames
+      if (rs485_serial_->popRxFrame(id, frame, 0)) {
+        dev_collection.dispatch_frame_callback(frame);
+        received_count++;
+      }
+    }
+  }
+
+  return received_count;
 }
 
 }  // namespace safe_mrc

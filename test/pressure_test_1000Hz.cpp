@@ -66,7 +66,8 @@ int main() {
       next += std::chrono::milliseconds(1);  // 1 kHz period
 
       // Refresh all device states
-      safeguarder.refresh_all();
+      safeguarder.refresh_all_commands();
+      safeguarder.refresh_all_states();
 
       // Once per second, print a table of all device members
       if (++ticks % 1000 == 0) {
@@ -88,10 +89,10 @@ int main() {
         }
         std::cout << std::string(88, '-') << std::endl;
 
-        // Print bus detection statistics
-        std::cout << safeguarder.get_master_rs485_device_collection().
-                                get_bus_detector().generateReport()
-                                 << std::endl;
+        // // Print bus detection statistics
+        // std::cout << safeguarder.get_master_rs485_device_collection().
+        //                         get_bus_detector().generateReport()
+        //                          << std::endl;
       }
 
       std::this_thread::sleep_until(next);

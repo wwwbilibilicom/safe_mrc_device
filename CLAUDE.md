@@ -70,7 +70,19 @@ Layer 1: libserial (Hardware Communication)
 - **RS485Serial**: Inherits from `serial::Serial`, manages 4 Mbps communication
   - Thread-safe write with `rx_busy_` atomic flag
   - Configurable rx_delay (default 200μs) for non-FIFO slave devices
-  - Buffer management via `rx_buffer_` vector
+  - **Per-Device RX FIFOs**: `std::unordered_map<uint8_t, RS485RxFifo>` for direct frame routing
+  - Ring buffer (`rx_ring_`) for raw byte accumulation
+  - TX LIFO (`tx_lifo_`) for command queueing
+
+- **RS485Serial Frame Routing** (NEW - Per-Device FIFO Architecture):
+  - `extractFramesFromRingBuffer()`: Extracts frames and routes by device ID
+  - **Device ID Validation**: Only accepts IDs 0-15, logs warnings for invalid IDs
+  - **Dual-Path Extraction**:
+    - Fast path: Header-aligned frames (optimized)
+    - Search path: Scans for 0xFE 0xEE header (resynchronization)
+  - `getOrCreateFifo(device_id)`: Lazy FIFO creation (thread-safe)
+  - `popRxFrame(device_id, frame, timeout)`: Application-facing API
+  - Optional debug logging via `RS485_DEBUG_ROUTING` flag
 
 - **RS485DeviceCollection**: Frame reception and dispatch
   - Background RX thread continuously reads from serial port
@@ -208,7 +220,7 @@ detector->resetStats(device_id);  // Specific device
    ```
    **Common Issue**: Serial monitor tools (VSCode extensions, minicom, screen, etc.) can consume all RX data, causing `available()` to return 0 even though hardware is receiving data. Always close all serial monitors before running your application.
 
-2. Enable frame printing: `rs485_serial_.printf_frame((uint8_t*)&cmd_frame);`
+2. **Enable frame routing debug logs**: Compile with `-DRS485_DEBUG_ROUTING` to trace frame routing
 3. Check `last_error_` strings in RS485Serial
 4. Monitor CRC mismatch warnings in console output
 5. Use BusDetector to identify problematic devices
@@ -219,8 +231,9 @@ detector->resetStats(device_id);  // Specific device
 - [ ] Are you running with proper permissions? (sudo or udev rules)
 - [ ] Is the RX thread actually running? (add debug output to `rxThread()`)
 - [ ] Is `available()` returning non-zero values? (check with periodic logging)
-- [ ] Are frames being extracted? (monitor `rx_ring_.size()` and `rx_fifo_.size()`)
+- [ ] Are frames being extracted? (monitor `rx_ring_.size()` and per-device FIFO sizes)
 - [ ] Is CRC validation passing? (look for CRC mismatch errors in logs)
+- [ ] Are device IDs valid? (check for "Invalid device ID" warnings)
 
 ## File Organization
 
@@ -335,6 +348,9 @@ stty -F /dev/ttyUSB0 -a | grep speed
 - Fixed double-free corruption issues
 - Tested at 1000 Hz with 2 devices
 - **CRITICAL FIX**: Fixed RX thread CPU starvation issue causing `available()` to always return 0
+- **NEW**: Implemented per-device FIFO architecture with direct frame routing (replaces single FIFO + dispatch)
+- **NEW**: Added device ID validation (0-15 range) to prevent spurious FIFO creation
+- **NEW**: Added conditional debug logging for frame routing (`RS485_DEBUG_ROUTING` flag)
 
 ### Critical RX Thread Fix (Latest)
 **Problem**: Serial port `available()` consistently returned 0 despite hardware receiving data correctly. Investigation revealed:
@@ -407,6 +423,126 @@ See `test/pressure_test_1000Hz.cpp` for complete integration:
 - Bus detection enabled at startup
 - Statistics printed every 1000 iterations (1 second at 1kHz)
 - Success rates and response times monitored in real-time
+
+### Per-Device FIFO Frame Routing (Latest Implementation)
+
+**Architecture Change**: Migrated from single FIFO + dispatch model to per-device FIFO with direct routing for lower latency and cleaner architecture.
+
+**Implementation Details** (src/rs485bus/rs485_serial.cpp:172-290):
+
+#### Data Structure
+```cpp
+// Header: rs485_serial.hpp
+std::unordered_map<uint8_t, RS485RxFifo> rx_fifos_per_device_;
+std::mutex rx_fifos_mutex_;
+```
+
+#### Frame Routing Flow
+```
+[RX Thread] → [Ring Buffer] → [extractFramesFromRingBuffer()]
+    ↓
+[Find 0xFE 0xEE Header] → [Extract 17-byte Frame] → [Validate CRC]
+    ↓
+[Validate Device ID (0-15)] → [getOrCreateFifo(device_id)] → [FIFO.push(frame)]
+    ↓
+[Application Thread] ← [popRxFrame(device_id, frame, timeout)]
+```
+
+#### Key Methods
+
+**`extractFramesFromRingBuffer()`** - Two-path extraction:
+- **Fast Path** (line 186-216): Header already aligned at offset 0
+  - Checks bytes [0:1] == [0xFE, 0xEE]
+  - Extracts frame, validates CRC
+  - Routes to per-device FIFO if device ID valid (0-15)
+  - Discards frame with warning if device ID > 15
+
+- **Search Path** (line 218-290): Header misaligned or corrupted
+  - Scans ring buffer for 0xFE 0xEE header
+  - Consumes garbage bytes before header
+  - Extracts frame, validates CRC
+  - Routes to per-device FIFO with validation
+
+**`getOrCreateFifo(uint8_t device_id)`** (line 69-80):
+- Thread-safe lazy FIFO creation using `std::lock_guard`
+- Uses `try_emplace()` to construct non-copyable FIFO in-place
+- Each FIFO holds 128 frames (configurable)
+- Logs FIFO creation for debugging
+
+**`popRxFrame(uint8_t device_id, MRCFdkFrame& out, int timeout_ms)`** (line 109-111):
+- Application-facing API
+- Calls `getOrCreateFifo(device_id).wait_and_pop(out, timeout_ms)`
+- Thread-safe, blocks until frame available or timeout
+
+**`isValidDeviceId(uint8_t device_id)`** (line 82-84):
+- Validates device ID is in range 0-15
+- Prevents spurious FIFO creation from corrupted frames
+- Returns `true` for IDs 0-15, `false` otherwise
+
+#### Device ID Validation
+```cpp
+// Both fast path and search path include:
+if (isValidDeviceId(f.id)) {
+  getOrCreateFifo(f.id).push(f);
+  #ifdef RS485_DEBUG_ROUTING
+  std::cout << "[RS485] Routed frame to device " << f.id << std::endl;
+  #endif
+} else {
+  std::cerr << "[RS485] WARNING: Invalid device ID " << f.id
+            << " (expected 0-15), discarding frame" << std::endl;
+}
+```
+
+#### Debug Logging
+Enable frame routing traces at compile time:
+```cmake
+# Add to CMakeLists.txt
+add_compile_definitions(RS485_DEBUG_ROUTING)
+```
+
+Output example:
+```
+[RS485] Created RX FIFO for device ID: 0
+[RS485] Routed frame to device 0 (fast path)
+[RS485] Created RX FIFO for device ID: 1
+[RS485] Routed frame to device 1 (search path)
+[RS485] WARNING: Invalid device ID 100 (expected 0-15), discarding frame
+```
+
+#### Thread Safety
+- **FIFO Creation**: Mutex-protected map access (`rx_fifos_mutex_`)
+- **Frame Push**: Each FIFO has internal mutex (thread-safe)
+- **Frame Pop**: Blocking with condition variable, thread-safe
+- **Bus Coordination**: Atomic flags (`rx_busy_`, `tx_busy_`)
+
+#### Performance Characteristics
+- **Fast Path**: O(1) header check, minimal overhead
+- **Search Path**: O(n) buffer scan, triggered only on desync
+- **FIFO Creation**: One-time cost per device, lazy initialization
+- **No Contention**: Each device has dedicated FIFO, no cross-device blocking
+
+#### Design Benefits vs. Old Single-FIFO Architecture
+| Aspect | Old (Single FIFO + Dispatch) | New (Per-Device FIFOs) |
+|--------|------------------------------|------------------------|
+| Latency | Higher (dispatch layer overhead) | Lower (direct routing) |
+| Blocking | Cross-device contention | Per-device isolation |
+| Code Complexity | Dispatch callbacks | Simple map lookup |
+| Scalability | Limited by single mutex | Scales with device count |
+| Debug | Hard to trace per-device | Clear per-device logs |
+
+#### Common Issues & Solutions
+
+**Issue**: Frames with invalid device IDs (> 15) create FIFOs
+- **Cause**: CRC validation passed but device ID corrupted
+- **Fix**: `isValidDeviceId()` validation added (commit: latest)
+
+**Issue**: Compilation error "no matching constructor for RS485RxFifo"
+- **Cause**: FIFO contains non-copyable `std::mutex`, `emplace()` failed
+- **Fix**: Use `try_emplace()` for in-place construction (line 74)
+
+**Issue**: Cannot pop frames for a device that hasn't sent yet
+- **Cause**: FIFO not created until first frame received
+- **Fix**: `getOrCreateFifo()` auto-creates on pop, lazy initialization works
 
 # Hardware dependency
 

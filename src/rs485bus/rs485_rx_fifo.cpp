@@ -11,6 +11,7 @@
  **************************************************/
 
 #include "safe_mrc_device/rs485bus/rs485_rx_fifo.hpp"
+#include <iostream>
 
 namespace safe_mrc {
 
@@ -34,6 +35,7 @@ void RS485RxFifo::clear() {
 
 void RS485RxFifo::push(const MRCFdkFrame& f) {
   {
+    // std::cout << "[RS485RxFifo]: Push device " << static_cast<int>(f.id) << std::endl;
     std::lock_guard<std::mutex> lk(mtx_);
     if (q_.size() >= max_size_) {
       // Drop the oldest frame to keep the most recent one

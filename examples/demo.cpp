@@ -46,8 +46,9 @@ int main() {
          safe_mrc::MRCCmd{safe_mrc::MRCMode::FIX_LIMIT, 0.0f}});
 
     for (int i = 0; i < 10; i++) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      safeguarder.refresh_all();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      safeguarder.refresh_all_commands();
+      safeguarder.refresh_all_states();
       // set print format
       std::cout << std::fixed
                 << std::setprecision(2);  // set decimal precision to 2

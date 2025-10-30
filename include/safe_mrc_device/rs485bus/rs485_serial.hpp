@@ -6,6 +6,7 @@
 #include <vector>
 #include <mutex>
 #include <condition_variable>
+#include <unordered_map>
 
 #include <serial/serial.h>
 #include "safe_mrc_device/safe_mrc/safe_mrc_protocol.h"
@@ -48,8 +49,8 @@ class RS485Serial : public serial::Serial {
 
   // API for upper layers
   bool pushTxFrame(const MRCCmdFrame& frame);
-  bool printRxFrame();
-  bool popRxFrame(MRCFdkFrame& out_frame, int timeout_ms = 0);
+  bool printRxFrame(uint8_t device_id);
+  bool popRxFrame(uint8_t device_id, MRCFdkFrame& out_frame, int timeout_ms = 0);
   void printTxFrameHex(MRCCmdFrame &frame);
 
   void showRxRingBuffer();
@@ -72,6 +73,12 @@ class RS485Serial : public serial::Serial {
   void extractFramesFromRingBuffer();
   bool parseOneFrame(MRCFdkFrame& frame_out);
 
+  // Get or create per-device FIFO (thread-safe)
+  RS485RxFifo& getOrCreateFifo(uint8_t device_id);
+
+  // Validate device ID is in expected range
+  bool isValidDeviceId(uint8_t device_id) const;
+
  private:
   // Device state
   std::string port_;
@@ -84,7 +91,8 @@ class RS485Serial : public serial::Serial {
 
   // RX structures
   ByteRingBuffer rx_ring_;
-  RS485RxFifo    rx_fifo_;
+  std::unordered_map<uint8_t, RS485RxFifo> rx_fifos_per_device_;
+  std::mutex rx_fifos_mutex_;
   std::atomic<bool> rx_busy_{false};
   std::thread rx_thread_;
   bool rx_thread_running_{false};

@@ -27,10 +27,23 @@ int main()
 
             rs485.pushTxFrame(cmd_frame);
             rs485.printTxFrameHex(cmd_frame);
+
+    
+            cmd_frame.head[0] = 0xFE;
+            cmd_frame.head[1] = 0xEE;
+            cmd_frame.id = 0x02; // Device ID
+            cmd_frame.mode = static_cast<uint8_t>(MRCMode::FIX_LIMIT);
+            current = static_cast<int32_t>(std::round(0.5 * 1000.0f));
+            cmd_frame.des_coil_current = current;
+            cmd_frame.CRC16Data =
+                crc_ccitt(0xFFFF, reinterpret_cast<uint8_t *>(&cmd_frame), sizeof(cmd_frame) - 2);
+
+            rs485.pushTxFrame(cmd_frame);
+            rs485.printTxFrameHex(cmd_frame);
             
 
             // Example: Receive a feedback frame
-            if (rs485.printRxFrame())
+            if (rs485.printRxFrame(0x01))
             {
             }
             else
@@ -38,9 +51,20 @@ int main()
                 std::cout << "No feedback received within timeout." << std::endl;
             }
 
+            // Example: Receive a feedback frame
+            if (rs485.printRxFrame(0x02))
+            {
+            }
+            else
+            {
+                std::cout << "No feedback received within timeout." << std::endl;
+            }
+
+
             std::cout << "----------------------------------------" << std::endl
                       << std::endl;
             // rs485.showRxRingBuffer();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
     catch (const std::exception &e)
@@ -48,7 +72,6 @@ int main()
         std::cerr << "[RS485Serial Exception]: " << e.what() << std::endl;
         return -1;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     return 0;
 }

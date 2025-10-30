@@ -12,7 +12,6 @@ RS485Serial::RS485Serial(const std::string& port)
     : serial::Serial(port, 4000000, serial::Timeout::simpleTimeout(20)),
       port_(port),
       rx_ring_(1u << 14),   // 16 KB ring buffer
-      rx_fifo_(128),        // 128-entry RX FIFO
       tx_lifo_(128) {       // 128-entry TX LIFO
   if (!this->isOpen()) {
     throw RS485SerialException("Failed to open port " + port);
@@ -66,6 +65,27 @@ void RS485Serial::disable_tx_thread() {
 
 // ----------------------------- TX Interface ---------------------------------
 
+// Get or create per-device FIFO (thread-safe)
+RS485RxFifo& RS485Serial::getOrCreateFifo(uint8_t device_id) {
+  std::lock_guard<std::mutex> lock(rx_fifos_mutex_);
+  auto it = rx_fifos_per_device_.find(device_id);
+  if (it == rx_fifos_per_device_.end()) {
+    // Use try_emplace to construct in-place, avoiding copy
+    auto result = rx_fifos_per_device_.try_emplace(device_id, 128);
+    std::cout << "[RS485] Created RX FIFO for device ID: "
+              << static_cast<int>(device_id) << std::endl;
+    return result.first->second;
+  }
+  return it->second;
+}
+
+// Validate device ID is in expected range (0-15)
+bool RS485Serial::isValidDeviceId(uint8_t device_id) const {
+  return device_id <= 15;
+}
+
+// ----------------------------- TX Interface ---------------------------------
+
 bool RS485Serial::pushTxFrame(const MRCCmdFrame& frame) {
   return tx_lifo_.push(frame);
 }
@@ -93,15 +113,15 @@ void RS485Serial::printTxFrameHex(MRCCmdFrame &frame)
 
 // ----------------------------- RX Interface ---------------------------------
 
-bool RS485Serial::popRxFrame(MRCFdkFrame& out_frame, int timeout_ms) {
-  return rx_fifo_.wait_and_pop(out_frame, timeout_ms);
+bool RS485Serial::popRxFrame(uint8_t device_id, MRCFdkFrame& out_frame, int timeout_ms) {
+  return getOrCreateFifo(device_id).wait_and_pop(out_frame, timeout_ms);
 }
 
 // （可选调试）尝试取一帧并打印
-bool RS485Serial::printRxFrame()
+bool RS485Serial::printRxFrame(uint8_t device_id)
 {
   MRCFdkFrame frame;
-  if (popRxFrame(frame, 100)) {
+  if (popRxFrame(device_id, frame, 100)) {
     std::cout << "Received Frame - ID: " << static_cast<int>(frame.id)
               << " Mode: " << static_cast<int>(frame.mode)
               << " Position: " << frame.encoder_position
@@ -120,7 +140,7 @@ void RS485Serial::showRxRingBuffer() {
 }
 
 // ----------------------------- RX Thread ------------------------------------
-// 读取串口 → 推入环形缓冲 → 批量提取完整帧 → 推入 rx_fifo_
+// 读取串口 → 推入环形缓冲 → 批量提取完整帧 → 按设备ID路由到对应FIFO
 void RS485Serial::rxThread() {
   uint8_t temp[2048];
   while (rx_thread_running_) {
@@ -140,7 +160,7 @@ void RS485Serial::rxThread() {
 
       if (n > 0) {
         rx_ring_.push(temp, n);
-        std::cout << "[RS485 RX] Read " << n << " bytes." << std::endl;
+        // std::cout << "[RS485 RX] Read " << n << " bytes." << std::endl;
       }
 
       extractFramesFromRingBuffer();
@@ -192,7 +212,20 @@ void RS485Serial::extractFramesFromRingBuffer() {
       if (crc_recv == crc_calc) {
         MRCFdkFrame f{};
         std::memcpy(&f, tmp, FRAME_LEN);
-        rx_fifo_.push(f);
+
+        // Validate device ID before routing to FIFO
+        if (isValidDeviceId(f.id)) {
+          getOrCreateFifo(f.id).push(f);
+#ifdef RS485_DEBUG_ROUTING
+          std::cout << "[RS485] Routed frame to device "
+                    << static_cast<int>(f.id) << " (fast path)" << std::endl;
+#endif
+        } else {
+          std::cerr << "[RS485] WARNING: Invalid device ID "
+                    << static_cast<int>(f.id) << " (expected 0-15), discarding frame"
+                    << std::endl;
+        }
+
         rx_ring_.consume(FRAME_LEN);
         continue;  // 继续榨干下一帧
       } else {
@@ -234,7 +267,20 @@ void RS485Serial::extractFramesFromRingBuffer() {
     if (crc_recv == crc_calc) {
       MRCFdkFrame f{};
       std::memcpy(&f, tmp, FRAME_LEN);
-      rx_fifo_.push(f);
+
+      // Validate device ID before routing to FIFO
+      if (isValidDeviceId(f.id)) {
+        getOrCreateFifo(f.id).push(f);
+#ifdef RS485_DEBUG_ROUTING
+        std::cout << "[RS485] Routed frame to device "
+                  << static_cast<int>(f.id) << " (search path)" << std::endl;
+#endif
+      } else {
+        std::cerr << "[RS485] WARNING: Invalid device ID "
+                  << static_cast<int>(f.id) << " (expected 0-15), discarding frame"
+                  << std::endl;
+      }
+
       rx_ring_.consume(FRAME_LEN);
       continue;
     } else {

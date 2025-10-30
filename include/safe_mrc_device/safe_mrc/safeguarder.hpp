@@ -33,9 +33,10 @@ class Safeguarder {
 
   void enable_all();
   void disable_all();
-  void refresh_all();
+  void refresh_all_commands();
   void set_zero_all();
-  
+  int refresh_all_states();
+
  private:
   std::string port_;
   std::unique_ptr<RS485Serial> rs485_serial_;

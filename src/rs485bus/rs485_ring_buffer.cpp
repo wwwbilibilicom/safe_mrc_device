@@ -47,8 +47,8 @@ void ByteRingBuffer::clear() { head_ = tail_ = 0; }
 
 // ---- Push ----
 size_t ByteRingBuffer::push(const uint8_t* data, size_t n) {
-    std::cout << "[ByteRingBuffer] Pushing " << n << " bytes" << std::endl;
-    std::cout << "[ByteRingBuffer] Current size: " << size() << ", free space: " << free_space() << std::endl;
+    // std::cout << "[ByteRingBuffer] Pushing " << n << " bytes" << std::endl;
+    // std::cout << "[ByteRingBuffer] Current size: " << size() << ", free space: " << free_space() << std::endl;
   if (n > free_space()) {
     size_t need = n - free_space();
     tail_ += need;
@@ -61,7 +61,7 @@ size_t ByteRingBuffer::push(const uint8_t* data, size_t n) {
     std::memcpy(&buf_[0], data + first, n - first);
   }
   head_ += n;
-  std::cout << "[ByteRingBuffer] Pushed " << n << " bytes, new size: " << size() << std::endl;
+//   std::cout << "[ByteRingBuffer] Pushed " << n << " bytes, new size: " << size() << std::endl;
   return n;
 }
 
