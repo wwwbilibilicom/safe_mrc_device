@@ -72,13 +72,6 @@ std::vector<MRC> SafeMRCDeviceCollection::get_mrcs() const {
 
 void SafeMRCDeviceCollection::send_command_to_device(
     std::shared_ptr<SafeMRCRS485Device> device, const MRCCmd& cmd) {
-  uint8_t device_id = device->get_rs485_id();
-
-  // Record request start for bus detection
-  if (device_collection_->get_bus_detector().isEnabled()) {
-    device_collection_->get_bus_detector().recordRequestStart(device_id);
-  }
-
   MRCCmdFrame cmd_frame =
       device->create_cmd_frame(static_cast<MRCMode>(cmd.mode), cmd.current_A);
   //   rs485_serial_.printf_frame((uint8_t*)&cmd_frame);

@@ -50,11 +50,6 @@ void RS485DeviceCollection::dispatch_frame_callback(
     safe_mrc::MRCFdkFrame& frame) {
   auto it = devices_.find(frame.id);
   if (it != devices_.end()) {
-    // Record successful response for bus detection
-    if (bus_detector_.isEnabled()) {
-      bus_detector_.recordSuccess(frame.id);
-    }
-
     it->second->callback(frame);
   }
   // Note: Silently ignore frames for unknown devices (this is normal in RS485

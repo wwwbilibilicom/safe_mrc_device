@@ -90,7 +90,7 @@ bool RS485Serial::pushTxFrame(const MRCCmdFrame& frame) {
   return tx_lifo_.push(frame);
 }
 
-// （可选调试）打印待发送帧
+// (Optional debug) Print TX frame in hex format
 void RS485Serial::printTxFrameHex(MRCCmdFrame &frame)
 {
   constexpr size_t len = sizeof(MRCCmdFrame);
@@ -117,7 +117,7 @@ bool RS485Serial::popRxFrame(uint8_t device_id, MRCFdkFrame& out_frame, int time
   return getOrCreateFifo(device_id).wait_and_pop(out_frame, timeout_ms);
 }
 
-// （可选调试）尝试取一帧并打印
+// (Optional debug) Try to pop one frame and print it
 bool RS485Serial::printRxFrame(uint8_t device_id)
 {
   MRCFdkFrame frame;
@@ -140,7 +140,7 @@ void RS485Serial::showRxRingBuffer() {
 }
 
 // ----------------------------- RX Thread ------------------------------------
-// 读取串口 → 推入环形缓冲 → 批量提取完整帧 → 按设备ID路由到对应FIFO
+// Read serial → Push to ring buffer → Extract frames → Route by device ID to corresponding FIFO
 void RS485Serial::rxThread() {
   uint8_t temp[2048];
   while (rx_thread_running_) {
@@ -174,15 +174,15 @@ void RS485Serial::rxThread() {
 }
 
 // ----------------------------- Frame Extractor ------------------------------
-// 优先使用“同步快路径”（头已对齐且字节足够），否则进入“搜头模式”。
-// CRC 错误时仅丢 1 字节实现快速重同步；找不到头时保留 1 字节尾巴防跨界丢头。
+// Prioritize "sync fast path" (header aligned with sufficient bytes), otherwise enter "header search mode".
+// On CRC error, discard only 1 byte for fast resync; if header not found, keep 1 tail byte to prevent cross-boundary header loss.
 void RS485Serial::extractFramesFromRingBuffer() {
   constexpr uint8_t H0 = 0xFE;
   constexpr uint8_t H1 = 0xEE;
   const size_t FRAME_LEN = sizeof(MRCFdkFrame);
 
   while (true) {
-    // A) 不够头部就退出，等待更多字节
+    // A) Exit if not enough for header, wait for more bytes
     size_t avail = rx_ring_.size();
     // std::cout << "[RS485 RX] Available bytes: " << avail << std::endl;
     if (avail < 2) {
@@ -190,18 +190,18 @@ void RS485Serial::extractFramesFromRingBuffer() {
       break;
     }
 
-    // B) 同步快路径：ring 起始两字节就是头
+    // B) Sync fast path: first two bytes of ring are header
     uint8_t b0 = 0, b1 = 0;
     if (rx_ring_.peek_byte(0, b0) && rx_ring_.peek_byte(1, b1) &&
         b0 == H0 && b1 == H1)
     {
       if (avail < FRAME_LEN) {
         // std::cout << "[RS485 RX] Incomplete frame, waiting for more data." << std::endl;
-        // 头已对齐但数据不够，等待下一批
+        // Header aligned but not enough data, wait for next batch
         break;
       }
 
-      // 取一帧并校验 CRC（末尾 2 字节 CRC16）
+      // Extract one frame and validate CRC (last 2 bytes are CRC16)
       uint8_t tmp[sizeof(MRCFdkFrame)];
       rx_ring_.peek(0, tmp, FRAME_LEN);
 
@@ -227,34 +227,34 @@ void RS485Serial::extractFramesFromRingBuffer() {
         }
 
         rx_ring_.consume(FRAME_LEN);
-        continue;  // 继续榨干下一帧
+        continue;  // Continue extracting next frame
       } else {
-        // CRC 错误：丢 1 字节重同步
+        // CRC error: discard 1 byte and resync
         rx_ring_.consume(1);
         continue;
       }
     }
 
-    // C) 搜头模式：从任意位置搜索 H0 H1
+    // C) Header search mode: search for H0 H1 from any position
     size_t off = rx_ring_.find_header_2B(H0, H1, 0);
     if (off == rx_ring_.size()) {
-      // 当前数据中没有头：保留 1 字节尾巴避免跨界丢头
+      // No header in current data: keep 1 tail byte to avoid cross-boundary header loss
       if (avail > 1) rx_ring_.consume(avail - 1);
       break;
     }
 
-    // 推进到头位置
+    // Advance to header position
     if (off > 0) {
       rx_ring_.consume(off);
       avail -= off;
-      if (avail < 2) break; // 稳妥保护
+      if (avail < 2) break; // Safety guard
     }
 
-    // 此时 0 位置应是头。检查是否有完整一帧
+    // Now position 0 should be header. Check if we have a complete frame
     avail = rx_ring_.size();
     if (avail < FRAME_LEN) break;
 
-    // 取一帧并 CRC 校验
+    // Extract one frame and validate CRC
     uint8_t tmp[sizeof(MRCFdkFrame)];
     rx_ring_.peek(0, tmp, FRAME_LEN);
     uint16_t crc_recv = 0;
@@ -284,15 +284,15 @@ void RS485Serial::extractFramesFromRingBuffer() {
       rx_ring_.consume(FRAME_LEN);
       continue;
     } else {
-      // CRC 错误：左移 1 字节继续同步
+      // CRC error: shift 1 byte left and continue syncing
       rx_ring_.consume(1);
       continue;
     }
   }
 }
 
-// 如果你仍保留 parseOneFrame 接口，提供与上面一致的安全实现；
-// 也可仅依赖 extractFramesFromRingBuffer()，把 parseOneFrame 留作内部工具。
+// If you still keep the parseOneFrame interface, provide a consistent safe implementation.
+// Alternatively, rely solely on extractFramesFromRingBuffer() and keep parseOneFrame as an internal tool.
 bool RS485Serial::parseOneFrame(MRCFdkFrame& frame_out) {
   constexpr uint8_t H0 = 0xFE;
   constexpr uint8_t H1 = 0xEE;
@@ -301,7 +301,7 @@ bool RS485Serial::parseOneFrame(MRCFdkFrame& frame_out) {
   size_t avail = rx_ring_.size();
   if (avail < 2) return false;
 
-  // 快路径：0/1 正好是头
+  // Fast path: bytes 0/1 are exactly the header
   uint8_t b0 = 0, b1 = 0;
   if (rx_ring_.peek_byte(0, b0) && rx_ring_.peek_byte(1, b1) &&
       b0 == H0 && b1 == H1)
@@ -324,7 +324,7 @@ bool RS485Serial::parseOneFrame(MRCFdkFrame& frame_out) {
     return true;
   }
 
-  // 搜头
+  // Header search
   size_t off = rx_ring_.find_header_2B(H0, H1, 0);
   if (off == rx_ring_.size()) {
     if (avail > 1) rx_ring_.consume(avail - 1);
@@ -352,7 +352,7 @@ bool RS485Serial::parseOneFrame(MRCFdkFrame& frame_out) {
 }
 
 // ----------------------------- TX Thread ------------------------------------
-// LIFO 取命令 → 半双工保护（等待 RX/TX 空闲）→ 写串口 → 失败回推栈重试
+// Pop command from LIFO → Half-duplex guard (wait for RX/TX idle) → Write to serial → Requeue on failure
 void RS485Serial::txThread() {
   while (tx_thread_running_) {
     try {
@@ -385,16 +385,16 @@ void RS485Serial::txThread() {
           set_last_error("TX short write");
           requeue = true;
         }
-        // 给从机应答时间（视物理层收发延时/转换器特性可调）
+        // Give slave time to respond (adjustable based on physical layer transceiver delay)
         std::this_thread::sleep_for(std::chrono::microseconds(rx_delay_us_));
       }
 
       if (requeue) {
-        // 写入失败或总线忙：重新入栈，保证命令不会丢
+        // Write failed or bus busy: requeue to ensure command is not lost
         tx_lifo_.push(cmd);
       }
 
-      // 轻微降载
+      // Light load reduction
       std::this_thread::sleep_for(std::chrono::microseconds(10));
 
     } catch (const std::exception& e) {
