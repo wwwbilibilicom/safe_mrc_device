@@ -41,11 +41,6 @@ int main() {
     std::cout << "Initializing MRC devices..." << std::endl;
     safeguarder.init_mrcs(mrc_types, rs485_ids);
 
-    // Enable bus detection
-    std::cout << "Enabling bus detection..." << std::endl;
-    safeguarder.get_master_rs485_device_collection()
-        .enable_bus_detection(true);
-
     // Enable all and set conservative rx timeout for slow ops
     safeguarder.enable_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -30,8 +30,6 @@ void Safeguarder::register_mrc_device_collection(
   for (const auto& [id, device] :
        device_collection.get_device_collection().get_devices()) {
     master_rs485_device_collection_->add_device(device);
-    // Allocate the detector stats entry
-    master_rs485_device_collection_->get_bus_detector().registerDetectorDevice(id);
   }
   sub_mrc_device_collections_.push_back(&device_collection);
 }

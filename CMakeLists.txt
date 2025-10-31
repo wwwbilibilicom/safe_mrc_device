@@ -52,7 +52,6 @@ set(SOURCES
     src/rs485bus/rs485_tx_lifo.cpp
     src/rs485bus/rs485_serial.cpp
     src/rs485bus/rs485_device_collection.cpp
-    src/rs485bus/bus_detector.cpp
 )
 
 # Create library
